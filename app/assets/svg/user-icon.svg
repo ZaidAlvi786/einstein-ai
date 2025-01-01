@@ -1,0 +1,27 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 1000005985">
+<g id="Ellipse 1" filter="url(#filter0_d_1003_6879)">
+<circle cx="18" cy="18" r="15" fill="url(#paint0_radial_1003_6879)" shape-rendering="crispEdges"/>
+</g>
+<g id="Icon">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M24.3895 21.768L24.5814 22.68C24.7634 23.4685 24.5837 24.297 24.0916 24.9393C23.5994 25.5816 22.8461 25.9706 22.0375 26H14.6135C13.8048 25.9706 13.0515 25.5816 12.5593 24.9393C12.0672 24.297 11.8875 23.4685 12.0695 22.68L12.2615 21.768C12.4823 20.5334 13.5436 19.6262 14.7975 19.6H21.8535C23.1074 19.6262 24.1686 20.5334 24.3895 21.768ZM22.0375 24.792C22.4437 24.7873 22.826 24.5991 23.0775 24.28V24.288C23.386 23.901 23.5062 23.3966 23.4055 22.912L23.2135 22C23.1069 21.3241 22.5372 20.8181 21.8535 20.792H14.7975C14.1138 20.8181 13.544 21.3241 13.4375 22L13.2455 22.912C13.1472 23.3941 13.2673 23.8949 13.5735 24.28C13.8249 24.5991 14.2072 24.7873 14.6135 24.792H22.0375Z" fill="#D2D2D2"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M18.7254 18H17.9254C16.1581 18 14.7255 16.5673 14.7255 14.8V12.688C14.7233 11.9745 15.0058 11.2895 15.5104 10.785C16.015 10.2804 16.6999 9.99788 17.4134 10H19.2374C19.951 9.99788 20.6359 10.2804 21.1405 10.785C21.6451 11.2895 21.9276 11.9745 21.9254 12.688V14.8C21.9254 16.5673 20.4928 18 18.7254 18ZM17.4134 11.2C16.5916 11.2 15.9254 11.8662 15.9254 12.688V14.8C15.9254 15.9046 16.8209 16.8 17.9254 16.8H18.7254C19.83 16.8 20.7254 15.9046 20.7254 14.8V12.688C20.7254 12.2934 20.5687 11.9149 20.2896 11.6358C20.0106 11.3568 19.6321 11.2 19.2374 11.2H17.4134Z" fill="#D2D2D2"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_1003_6879" x="0.377044" y="0.377044" width="35.2459" height="35.2459" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="1.31148"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1003_6879"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1003_6879" result="shape"/>
+</filter>
+<radialGradient id="paint0_radial_1003_6879" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(18 18) rotate(86.7108) scale(30.3989)">
+<stop stop-color="#6F6F6F"/>
+<stop offset="1" stop-color="#5D5D5D" stop-opacity="0.15"/>
+</radialGradient>
+</defs>
+</svg>

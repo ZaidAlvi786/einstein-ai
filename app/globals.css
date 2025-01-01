@@ -1,0 +1,978 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+:root {
+  --foreground-rgb: 0, 0, 0 !important;
+  background: linear-gradient(125deg, #080808 6.89%, #171717 85.42%) !important;
+  /* background-image: url(../app/assets/image/mainBg.png) !important; */
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #23272b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    background: #181818;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .helvetica-font {
+    font-family: "Helvetica Neue", sans-serif;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #c3cbd3 ; /* Your desired color */
+    border-radius: 10px;
+   
+  }
+}
+
+.stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 16px 0;
+  overflow: hidden;
+}
+
+.dot-pulse {
+  position: relative;
+  left: -9999px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #909090;
+  color: #909090;
+  box-shadow: 9999px 0 0 -5px;
+  animation: dot-pulse 1.5s infinite linear;
+  animation-delay: 0.25s;
+}
+
+.dot-pulse::before,
+.dot-pulse::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #909090;
+  color: #909090;
+}
+
+.custom-gradient {
+  background: radial-gradient(
+    101.16% 101.16% at 50% 50%,
+    #6f6f6f 0%,
+    rgba(93, 93, 93, 0.15) 100%
+  );
+}
+
+.dot-pulse::before {
+  box-shadow: 9984px 0 0 -5px;
+  animation: dot-pulse-before 1.5s infinite linear;
+  animation-delay: 0s;
+}
+
+.dot-pulse::after {
+  box-shadow: 10014px 0 0 -5px;
+  animation: dot-pulse-after 1.5s infinite linear;
+  animation-delay: 0.5s;
+}
+
+.custom-gradient {
+  background: radial-gradient(
+    101.16% 101.16% at 50% 50%,
+    #6f6f6f 0%,
+    rgba(93, 93, 93, 0.15) 100%
+  );
+}
+
+.chat-list-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  border-radius: 8px;
+}
+
+.chat-list-scrollbar::-webkit-scrollbar-track {
+  background: #171717;
+  border-radius: 8px;
+}
+
+.chat-list-scrollbar::-webkit-scrollbar-thumb {
+  background: #272727;
+  border-radius: 8px;
+}
+
+.reply-scrollbar::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+  border-radius: 8px;
+}
+
+.reply-scrollbar::-webkit-scrollbar-track {
+  background: #272727;
+  border-radius: 8px;
+}
+
+.reply-scrollbar::-webkit-scrollbar-thumb {
+  background: #171717;
+  border-radius: 8px;
+}
+
+@keyframes dot-pulse-before {
+  0% {
+    box-shadow: 9984px 0 0 -5px;
+  }
+
+  30% {
+    box-shadow: 9984px 0 0 2px;
+  }
+
+  60%,
+  100% {
+    box-shadow: 9984px 0 0 -5px;
+  }
+}
+
+@keyframes dot-pulse {
+  0% {
+    box-shadow: 9999px 0 0 -5px;
+  }
+
+  30% {
+    box-shadow: 9999px 0 0 2px;
+  }
+
+  60%,
+  100% {
+    box-shadow: 9999px 0 0 -5px;
+  }
+}
+
+@keyframes dot-pulse-after {
+  0% {
+    box-shadow: 10014px 0 0 -5px;
+  }
+
+  30% {
+    box-shadow: 10014px 0 0 2px;
+  }
+
+  60%,
+  100% {
+    box-shadow: 10014px 0 0 -5px;
+  }
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Adjust the opacity as needed */
+  backdrop-filter: blur(5px);
+  /* Adjust the blur effect as needed */
+  z-index: 1001;
+}
+
+.modal-box {
+  background-color: #000000;
+  /* Adjust background color as needed */
+  color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+  z-index: 1002;
+  width: 70%;
+  /* Adjust width as needed */
+  max-height: 80%;
+  /* Adjust max-height as needed */
+  overflow-y: auto;
+}
+
+.modal-section {
+  margin-bottom: 20px;
+  /* Add space below each section */
+}
+
+.modal-header {
+  text-align: right;
+}
+
+.modal-heading {
+  font-weight: bold;
+  margin-bottom: 10px;
+  /* Add space below the heading */
+}
+
+.modal-subheading {
+  font-weight: bold;
+  margin-bottom: 5px;
+  /* Add space below the subheading */
+}
+
+.close-icon {
+  cursor: pointer;
+}
+
+.modal-content-scrollable {
+  max-height: calc(100% - 40px);
+  /* Adjust max height to accommodate header and close icon */
+  overflow-y: auto;
+}
+
+.h-calculate {
+  height: calc(100vh - 24px);
+}
+
+.active-aspect-ratio {
+  background-color: #14171a8a;
+}
+
+.gr-1 {
+  background: linear-gradient(92.1deg, #7a88ff 6.23%, #68c3ff 90.35%);
+}
+
+.gr-2 {
+  background: linear-gradient(93deg, #7b88ff 10.75%, #64d0ff 111.71%);
+}
+
+.bg-clip-text {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+.w-48px {
+  width: 48px !important;
+}
+
+.disabled-div {
+  opacity: 0.5;
+  /* Reduces opacity to visually indicate disabled state */
+  pointer-events: none;
+  /* Disables mouse events on the whole div */
+}
+
+.mainBox {
+  height: calc(100vh - 78px);
+}
+
+/* Optionally, you can style the contents to give them a visually disabled appearance */
+.disabled-div * {
+  opacity: 0.5;
+  /* Reduces opacity of all child elements */
+  cursor: not-allowed;
+  /* Changes cursor to indicate non-interactivity */
+  /* Add any other styles to visually indicate the disabled state of the contents */
+}
+
+.planning-card {
+  /* background: rgb(32,30,30);
+  background: linear-gradient(155deg, rgba(32,30,30,1) 19%, rgba(97,97,97,1) 100%); */
+  /* background: rgb(0,0,0);
+background: linear-gradient(155deg, rgba(0,0,0,1) 19%, rgba(97,97,97,1) 100%); */
+  background: linear-gradient(
+    155deg,
+    rgb(20 19 19 / 90%) 19%,
+    rgb(97 97 97 / 48%) 100%
+  );
+}
+.planning-card-2 {
+  /* background: rgb(32,30,30);
+  background: linear-gradient(155deg, rgba(32,30,30,1) 19%, rgba(97,97,97,1) 100%); */
+  /* background: rgb(0,0,0);
+background: linear-gradient(155deg, rgba(0,0,0,1) 19%, rgba(97,97,97,1) 100%); */
+  background: linear-gradient(
+    155deg,
+    rgb(20 19 19 / 90%) 19%,
+    rgb(97 97 97 / 48%) 100%
+  );
+}
+.planning-card:hover {
+  background: linear-gradient(
+    155deg,
+    rgb(66 66 66 / 100%) 19%,
+    rgb(97 97 97 / 48%) 100%
+  );
+}
+/* Custom CSS for add group button */
+.back_main {
+  position: relative;
+  height: 24px;
+}
+
+.plusButton {
+  border-radius: 3px;
+  background: #505050;
+  border: 0;
+  width: 21.24px;
+  height: 6.2px;
+  transition: 0.3s;
+  position: absolute;
+  transform: translateY(-50%);
+  top: 118%;
+  /* left: -16.18px; */
+}
+
+.plusButton:hover {
+  height: 24px;
+}
+
+.plusButton:hover .plusIcon {
+  opacity: 1;
+}
+
+.plusIcon {
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.addGroup {
+  color: #fff;
+  font-family: "__helvetica_db26e5";
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  border-radius: 7.464px;
+  background: #343434;
+  padding: 3px 8px 3px 9px;
+  position: absolute;
+  left: -108px;
+  top: 18px;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.5s all;
+}
+
+.plusButton:hover + .addGroup {
+  opacity: 1;
+  visibility: visible;
+}
+
+.parent-div {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+  background-color: #171717;
+  padding: 9px 14px;
+  max-width: 260px;
+  justify-content: center;
+  border-radius: 26px;
+}
+
+.gptModal {
+  padding: 0 !important;
+  background-color: transparent !important;
+}
+
+.gptModal .parent-div {
+  border-radius: 0 0 26px 26px;
+  background-color: #171717;
+}
+
+.toggle-menu-parent-div button {
+  position: absolute;
+  right: 10px;
+}
+
+.toggle-menu-parent-div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gptModalgap {
+  gap: 4px !important;
+  background-color: #171717;
+}
+
+.gptModal .gptModalgap {
+  gap: 0px !important;
+  background-color: transparent;
+}
+
+.gptModal .toggle-menu-parent-div {
+  padding: 6.75px 2px 6.75px 0px !important;
+}
+
+.workspace-card {
+  border-radius: 19.77px;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.03) -2.13%,
+    rgba(255, 255, 255, 0.09) 136.58%
+  );
+  box-shadow: -2.471px 2.471px 6.59px 0px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(1.647539496421814px);
+}
+
+.edit-icon,
+.reply-btn {
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+
+.edit-input-field,
+.response-text {
+  transition: all 0.5s ease;
+}
+
+.edit-input-field:hover .edit-icon {
+  opacity: 1;
+}
+
+.response-text:hover .reply-btn {
+  opacity: 1;
+}
+
+.ant-modal-content {
+  padding: 0 !important;
+  background-color: #171717 !important;
+  border-radius: 20px !important;
+}
+
+.ant-modal-mask {
+  backdrop-filter: blur(2px);
+  /* Creates the blur effect */
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Optional: adds transparency to the overlay */
+}
+
+.tabs-container {
+  padding: 10px 0;
+  /* Adjust padding */
+  text-align: center;
+}
+
+/* Customize the tabs */
+.custom-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+  border-bottom: none;
+  /* Remove default bottom border */
+}
+
+.custom-tabs .ant-tabs-tab {
+  color: #ccc;
+  /* Set text color to light gray */
+  font-size: 14px;
+  /* Adjust font size */
+  padding: 0;
+  /* Adjust padding for tabs */
+}
+
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white;
+  /* Active tab text color */
+}
+
+.custom-tabs .ant-tabs-ink-bar {
+  background-color: white;
+  /* Active tab underline color */
+  height: 2px;
+  /* Thickness of the underline */
+}
+
+.custom-tabs .ant-tabs-tab:hover {
+  color: white;
+  /* Hover text color */
+}
+
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+  /* Active tab text color */
+}
+
+.custom-tabs .ant-tabs-tab:hover {
+  color: white;
+  /* Hover text color */
+}
+
+.custom-tabs .ant-tabs-nav::before {
+  border: none;
+  /* Hover text color */
+}
+
+.prompt-modal-input [data-slot="input-wrapper"]:hover {
+  background-color: transparent !important;
+}
+
+.prompt-modal-input [data-slot="input-wrapper"]:focus {
+  background-color: transparent !important;
+}
+
+@media (max-width: 1535px) {
+  .parent-div {
+    max-width: 220px;
+    padding: 10px 14px;
+  }
+
+  .toggle-menu-parent-div button {
+    right: 9px;
+  }
+}
+
+/* .gptModal {
+  max-width: 171px !important;
+  width: 100%;
+}
+
+@media (min-width: 1200px) {
+  .gptModal {
+    max-width: 304px !important;
+    width: 100%;
+  }
+} */
+
+.workspace-members-card::-webkit-scrollbar-thumb {
+  background: #575757;
+  border-radius: 10px;
+}
+
+.workspace-members-card::-webkit-scrollbar {
+  width: 5px;
+  height: 30px;
+}
+
+.trasnsition-card {
+  transition: all 0.6s ease;
+}
+
+.plus-icon:hover svg path {
+  fill: #fff;
+  transition: all 0.5s ease;
+}
+
+/* for tabs overflow */
+.tags_x_overflow::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+/* Apply the animation to elements with the 'pendulum' class */
+.pendulum {
+  animation: pendulum 0.6s infinite;
+  transform-origin: top center;
+  /* Rotate around the top center */
+}
+
+.drag-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* padding: 4px 8px; */
+  /* background-color: rgba(23, 23, 23, 0.9); */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  /* Ensure it's on top */
+  pointer-events: none;
+  /* Make sure it doesn't interfere with drag events */
+}
+
+@keyframes pendulum {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(4deg);
+  }
+
+  50% {
+    transform: rotate(0deg);
+  }
+
+  75% {
+    transform: rotate(-4deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* .toggle-tools .bg-default-200 {
+  background: transparent;
+  padding-left: 0.15rem;
+  padding-right: 0.15rem;
+}
+.toggle-tools
+  .group[data-selected="true"]
+  .group-data-\[selected\=true\]\:bg-default-400 {
+  width: 30px;
+  height: 19px;
+  background: transparent;
+}
+
+.toggle-tools .bg-default-200 .w-4 {
+  width: 13px;
+  height: 13px;
+}
+
+.toggle-tools
+  .group[data-selected="true"]
+  .group-data-\[selected\=true\]\:ml-4 {
+  margin-left: 0.59rem !important;
+}
+.toggle-tools {
+  width: fit-content;
+  height: -webkit-fill-available;
+  padding: 10px;
+  border-radius: 0 24px 24px 0;
+  margin-left: -27px;
+  display: flex;
+  align-items: center;
+  padding-left: 40px;
+}
+
+.toggle-tools .ant-switch-handle{
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.toggle-tools
+  :where(.css-dev-only-do-not-override-42nv3w).ant-switch
+  .ant-switch-handle {
+  width: 13px !important;
+  height: 13px !important;
+}
+.toggle-tools
+  :where(.css-dev-only-do-not-override-42nv3w).ant-switch.ant-switch-checked
+  .ant-switch-handle {
+  inset-inline-start: calc(100% - 15px) !important;
+}
+.toggle-tools
+  :where(.css-dev-only-do-not-override-42nv3w).ant-switch.ant-switch-checked {
+  background-color: transparent !important;
+}
+
+.toggle-tools
+  :where(
+    .css-dev-only-do-not-override-42nv3w
+  ).ant-switch.ant-switch-checked:hover:not(.ant-switch-disabled) {
+  background-color: transparent !important;
+}
+.toggle-tools :where(.css-1qhpsh8).ant-switch.ant-switch-checked {
+  background-color: transparent !important;
+}
+.toggle-tools :where(.css-42nv3w).ant-switch.ant-switch-checked {
+  background: transparent !important;
+}
+.toggle-tools :where(.css-42nv3w).ant-switch .ant-switch-handle {
+  top: 1px !important;
+} */
+
+.spb-btn {
+  font-size: 9px;
+  font-weight: 700;
+
+  width: fit-content;
+  /* padding: 5px; */
+  height: 18px;
+  padding: 0 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spb-btn:hover {
+  background: #434343;
+  cursor: pointer;
+}
+
+.spb-btn-active {
+  background: #434343;
+}
+
+@keyframes puddle {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-puddle {
+  animation: puddle 0.6s forwards;
+  /* groups scrollbar css */
+}
+.group_scroll::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: #3f3f3f;
+}
+
+.group_scroll::-webkit-scrollbar {
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.group_scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* .admin-details-tab
+  :where(.css-dev-only-do-not-override-42nv3w).ant-tabs
+  .ant-tabs-tab {
+  color: #a9a9a9 !important;
+}
+.admin-details-tab
+  :where(.css-dev-only-do-not-override-42nv3w).ant-tabs-top
+  > .ant-tabs-nav::before,
+:where(.css-dev-only-do-not-override-42nv3w).ant-tabs-bottom
+  > .ant-tabs-nav::before,
+:where(.css-dev-only-do-not-override-42nv3w).ant-tabs-top
+  > div
+  > .ant-tabs-nav::before,
+:where(.css-dev-only-do-not-override-42nv3w).ant-tabs-bottom
+  > div
+  > .ant-tabs-nav::before {
+  border-bottom: 1px solid #3c3c3c !important;
+}
+
+.admin-details-tab
+  :where(.css-dev-only-do-not-override-42nv3w).ant-tabs
+  .ant-tabs-tab.ant-tabs-tab-active
+  .ant-tabs-tab-btn {
+  color: white;
+}
+.admin-details-tab
+  :where(.css-dev-only-do-not-override-42nv3w).ant-tabs
+  .ant-tabs-ink-bar {
+  background: #fff;
+}
+
+.admin-details-tab
+  :where(.css-42nv3w).ant-tabs
+  .ant-tabs-tab.ant-tabs-tab-active
+  .ant-tabs-tab-btn {
+  color: white !important;
+}
+
+.admin-details-tab :where(.css-42nv3w).ant-tabs .ant-tabs-ink-bar {
+  background: white !important;
+}
+
+.admin-details-tab :where(.css-42nv3w).ant-tabs-top > .ant-tabs-nav::before {
+  border-color: gray !important;
+}
+.admin-details-tab .ant-tabs-ink-bar-animated {
+  background: white !important;
+}
+
+.admin-details-tab :where(.css-42nv3w).ant-tabs .ant-tabs-tab-btn {
+  color: gray !important;
+}
+.admin-details-tab :where(.css-42nv3w).ant-tabs .ant-tabs-tab:hover {
+  color: gray !important;
+}
+.admin-details-tab .ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+}
+.admin-details-tab .ant-tabs .ant-tabs-tab-remove:active {
+  color: gray !important;
+}
+.admin-details-tab .ant-tabs-tab-btn {
+  color: gray !important;
+}
+.admin-details-tab .ant-tabs-tab.ant-tabs-tab-active {
+  color: white !important;
+} */
+
+/* Style for the unchecked checkbox */
+.custom-checkbox .ant-checkbox-inner {
+  background-color: transparent;
+  border-color: white;
+  transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth transition */
+}
+
+/* Style for the checked state */
+.custom-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: black;
+  border-color: white;
+}
+
+/* Style for the checkmark */
+.custom-checkbox .ant-checkbox-checked .ant-checkbox-inner::after {
+  border-color: white;
+}
+
+/* Style for hover state */
+.custom-checkbox:hover .ant-checkbox-inner {
+  background-color: transparent; /* Keep it transparent on hover */
+  border-color: white; /* Keep the border white */
+}
+
+/* Optional: change the border color on hover */
+.custom-checkbox:hover .ant-checkbox-inner::after {
+  border-color: white; /* Keep the checkmark color white on hover */
+}
+.custom-checkbox
+  .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover
+  .ant-checkbox-inner,
+.ant-checkbox:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
+  background-color: transparent; /* Keep it transparent on hover */
+  border-color: white;
+}
+
+.ant-checkbox-input {
+  background-color: red !important;
+  border-color: red !important;
+}
+
+.addModal
+  .group[data-filled-within="true"]
+  .group-data-\[filled-within\=true\]\:text-foreground {
+  font-weight: 700;
+}
+
+@keyframes liquidExpand {
+  0% {
+    transform: translateY(200%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.liquid-drop {
+  /* width: 39.6px; */
+  transform-origin: bottom !important;
+  animation: liquidExpand 0.5s ease-out forwards;
+}
+
+.language-dropdown .tap-highlight-transparent{
+  height: 40px !important;
+}
+.admin-details-tab .ant-tabs-tab {
+  color: #B7B7B7; 
+  transition: color 0.3s ease; 
+}
+
+.admin-details-tab .ant-tabs-tab:hover {
+  color: white !important;
+}
+.admin-details-tab .ant-tabs-ink-bar-animated {
+  background: white !important;
+}
+.admin-details-tab .ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn{
+  color: white !important; 
+
+}
+
+.admin-details-tab .ant-tabs-top > .ant-tabs-nav::before {
+  border-color: gray !important;
+}
+
+.admin-details-tab .ant-tabs-tab-active:hover {
+  color: white !important;
+}
+
+.profile-input .bg-default-100{
+  background-color: #232323;
+}
+
+.profile-input .bg-default-100:hover{
+  background-color: #232323;
+}
+.profile-input .bg-default-100:focus{
+  background-color: #232323 !important;
+
+}
+.profile-input .bg-default-100:focus-visible{
+  background-color: #232323 !important;
+
+}
+
+.country-dropdown-add-card ._dropdown_1c03y_15, ._container_1c03y_8, svg {
+  position: unset !important;
+
+}
+.country-dropdown-add-card ._dropdown_items_wrapper_1c03y_27 {
+  bottom: 127px !important;
+background-color: black;
+border-radius: 25px !important;
+}
+.country-dropdown-add-card ._dropdown_1c03y_15 {
+  background: black !important;
+width: 192px;
+}
+.country-dropdown-add-card span {
+  color: white;
+}
+.country-dropdown-add-card {
+  color: white !important;
+}
+.country-dropdown-add-card svg{
+  display: none !important;
+}
+.country-dropdown-add-card ._dropdown_item_1c03y_27:hover{
+  background: #262626 !important;
+}
+.country-dropdown-add-card ._dropdown_items_1c03y_27::-webkit-scrollbar{
+  display: none !important;
+}
+.country-dropdown-add-card ._country_search_1c03y_50{
+  font-size: 12px !important;
+  color: white !important;
+  background: #232323 !important;
+  border-radius: 56px !important;
+  border: none !important;
+}
+
+.highlight {
+  background-color: yellow;
+  color: black;
+}
+.active-highlight {
+  background-color: orange !important;
+}
