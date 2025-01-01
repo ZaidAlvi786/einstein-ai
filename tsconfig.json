@@ -1,40 +1,45 @@
 {
   "compilerOptions": {
-    "types": ["node", "@testing-library/jest-dom", "vitest/globals"],
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": false,
+    "jsx": "preserve", // Use React's JSX runtime
+    "target": "ES6", // Set the ECMAScript target
+    "module": "ESNext", // Module system to ESNext
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
+    "baseUrl": ".", // Base directory for resolving non-relative modules
     "paths": {
-      "@constants/*": ["./src/shared/constants/*"],
-      "@interfaces/*": ["./src/shared/interfaces/*"],
-      "@routes/*": ["./src/shared/routes/*"],
-      "@helpers/*": ["./src/shared/helpers/*"],
-      "@enums/*": ["./src/shared/enums/*"],
-      "@stores/*": ["./src/shared/stores/*"],
-      "@utils/*": ["./src/shared/utils/*"],
-      "@reducers/*": ["./src/shared/reducers/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@layouts/*": ["./src/layouts/*"],
-      "@assets/*": ["./src/assets/*"],
-      "@components/*": ["./src/components/*"],
-      "@css/*": ["./src/shared/css/*"],
-      "@api/*": ["./src/shared/api/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@test-utils": ["./test-utils"],
-      "@hooks/*": ["./src/hooks/*"]
-    }
+      // "@components/*": ["@components/*"] ,
+      // "@utils/*": [
+      //   "utils/*"
+      // ] // You can also add this for utility functions if needed
+      "@/*":["./*"]
+    },
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ], // Include necessary libraries
+    "allowJs": true, // Allow JS files if necessary
+    "noEmit": true, // Don't emit any files (useful for Next.js)
+    "incremental": true, // Incremental compilation for faster builds
+    "moduleResolution": "node", // Resolve modules in a Node.js style
+    "resolveJsonModule": true,
+    "isolatedModules": true // Ensure each file is treated as an isolated module
+    ,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src", "test-utils", "template.js"]
+  "include": [
+    "components/**/*",
+    "pages/**/*",
+    ".next/types/**/*.ts",
+    "svg.d.ts"
+, "types"  ], // Include all files in components and pages
+  "exclude": [
+    "node_modules",
+    "build"
+  ] // Exclude node_modules and build folder
 }
