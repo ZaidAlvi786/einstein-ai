@@ -1,0 +1,130 @@
+@tailwind components;
+@tailwind utilities;
+
+a.active {
+  color: #b3b8db;
+  background-color: #3e4784;
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .bg-gradient-multiple-svgs {
+    background-image: url('../../assets/patterns/line1.svg'), url('../../assets/patterns/line2.svg'),
+      linear-gradient(45deg, #101323 0%, #3e4784 100%);
+    background-size: 36%, 23%, cover;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position:
+      top right,
+      bottom left,
+      center;
+  }
+}
+
+.bg-gradient-signup {
+  background-image: linear-gradient(45deg, rgba(16, 19, 35, 0.8) 0%, rgba(62, 71, 132, 0.8) 100%),
+    url('../../assets/img/reg-sidebar.jpeg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-color: lightgray;
+  background-position: center;
+}
+
+* {
+  scrollbar-width: thin;
+  font-family: Inter, sans-serif !important;
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.625rem;
+  background-color: #eff4fc;
+  border-radius: 0.625rem;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 0.5rem solid rgba(0, 0, 0, 0);
+  border-radius: 0.625rem;
+  background-color: #775da61f;
+}
+
+.mantine-Progress-root {
+  background-color: #4e5ba6 !important;
+}
+
+.topMenuDropDown .mantine-Button-inner {
+  justify-content: space-between !important;
+}
+
+.topMenuDropDown .mantine-Button-label {
+  width: 100%;
+  text-align: start;
+  margin-left: 0.625rem;
+}
+
+.topMenuDropDown:focus-visible {
+  box-shadow: 0px 0px 0px 0.25rem #9e77ed3d;
+  box-shadow: 0px 0.063rem 0.125rem 0px #1018280d;
+}
+
+.mantine-Menu-dropdown {
+  width: 17.5rem !important;
+}
+
+.stepper-container {
+  &[data-mantine-color-scheme='light'] {
+    background-color: unset;
+  }
+}
+
+.custom-tag {
+  .mantine-TagsInput-pill {
+    display: flex !important;
+    padding: 2px 4px 2px 9px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap:  0.19rem !important;
+    border-radius: var(--radius-sm, 6px) !important;
+    border: 1px solid var(--Gray-300, #d0d5dd) !important;
+    background: var(--Base-White, #fff) !important;
+    .mantine-Pill-label {
+      color: #344054;
+      text-align: center;
+      /* Text sm/Medium */
+      font-family: Inter;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20px; /* 142.857% */
+    }
+    .mantine-Pill-remove {
+      display: flex;
+      padding: 2px;
+      flex-direction: column;
+      align-items: flex-start;
+      border-radius: 3px;
+      color: #98a2b3;
+      min-width: max-content !important;
+      padding-block-end: unset !important;
+      svg {
+        width: 12px !important;
+        height: 12px !important;
+        stroke:#98A2B3;
+         stroke-width: 1.5;
+          stroke-linecap: round;
+           stroke-linejoin: round;
+      }
+    }
+  }
+}

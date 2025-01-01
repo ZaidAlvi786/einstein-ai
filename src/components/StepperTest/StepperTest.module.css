@@ -1,0 +1,34 @@
+
+
+.stepperItem:after {
+  position: absolute;
+  content: '';
+  border-bottom: 0.125rem solid #EAECF0;
+  width: 100%;
+  top: 17px;
+  left: 50%;
+  z-index: 2;
+}
+
+
+.stepperItem.completed .stepCounter {
+  /* background-color: #4bb543; */
+}
+
+.stepperItem.completed:after {
+  position: absolute;
+  content: '';
+  border-bottom: 0.125rem solid #344054;
+  width: 100%;
+  top: 17px;
+  left: 50%;
+  z-index: 3;
+}
+
+.stepperItem:first-child:before {
+  content: none;
+}
+
+.stepperItem:last-child:after {
+  content: none;
+}

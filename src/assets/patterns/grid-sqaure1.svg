@@ -1,0 +1,54 @@
+
+<svg width="336" height="208" viewBox="0 0 336 208" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_683_26512" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="-128" width="336" height="336">
+<rect width="336" height="336" transform="translate(0 -128)" fill="url(#paint0_radial_683_26512)"/>
+</mask>
+<g mask="url(#mask0_683_26512)">
+<g clipPath="url(#clip0_683_26512)">
+<g clipPath="url(#clip1_683_26512)">
+<line x1="0.5" y1="-128" x2="0.5" y2="208" stroke="#EAECF0"/>
+<line x1="24.5" y1="-128" x2="24.5" y2="208" stroke="#EAECF0"/>
+<line x1="48.5" y1="-128" x2="48.5" y2="208" stroke="#EAECF0"/>
+<line x1="72.5" y1="-128" x2="72.5" y2="208" stroke="#EAECF0"/>
+<line x1="96.5" y1="-128" x2="96.5" y2="208" stroke="#EAECF0"/>
+<line x1="120.5" y1="-128" x2="120.5" y2="208" stroke="#EAECF0"/>
+<line x1="144.5" y1="-128" x2="144.5" y2="208" stroke="#EAECF0"/>
+<line x1="168.5" y1="-128" x2="168.5" y2="208" stroke="#EAECF0"/>
+<line x1="192.5" y1="-128" x2="192.5" y2="208" stroke="#EAECF0"/>
+<line x1="216.5" y1="-128" x2="216.5" y2="208" stroke="#EAECF0"/>
+<line x1="240.5" y1="-128" x2="240.5" y2="208" stroke="#EAECF0"/>
+<line x1="264.5" y1="-128" x2="264.5" y2="208" stroke="#EAECF0"/>
+<line x1="288.5" y1="-128" x2="288.5" y2="208" stroke="#EAECF0"/>
+<line x1="312.5" y1="-128" x2="312.5" y2="208" stroke="#EAECF0"/>
+</g>
+<rect x="0.5" y="-127.5" width="335" height="335" stroke="#EAECF0"/>
+<g clipPath="url(#clip2_683_26512)">
+<line y1="15.5" x2="336" y2="15.5" stroke="#EAECF0"/>
+<line y1="39.5" x2="336" y2="39.5" stroke="#EAECF0"/>
+<line y1="63.5" x2="336" y2="63.5" stroke="#EAECF0"/>
+<line y1="87.5" x2="336" y2="87.5" stroke="#EAECF0"/>
+<line y1="111.5" x2="336" y2="111.5" stroke="#EAECF0"/>
+<line y1="135.5" x2="336" y2="135.5" stroke="#EAECF0"/>
+<line y1="159.5" x2="336" y2="159.5" stroke="#EAECF0"/>
+<line y1="183.5" x2="336" y2="183.5" stroke="#EAECF0"/>
+<line y1="207.5" x2="336" y2="207.5" stroke="#EAECF0"/>
+</g>
+<rect x="0.5" y="-127.5" width="335" height="335" stroke="#EAECF0"/>
+</g>
+</g>
+<defs>
+<radialGradient id="paint0_radial_683_26512" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(168 168) rotate(90) scale(168 168)">
+<stop/>
+<stop offset="1" stop-opacity="0"/>
+</radialGradient>
+<clipPath id="clip0_683_26512">
+<rect width="336" height="336" fill="white" transform="translate(0 -128)"/>
+</clipPath>
+<clipPath id="clip1_683_26512">
+<rect y="-128" width="336" height="336" fill="white"/>
+</clipPath>
+<clipPath id="clip2_683_26512">
+<rect y="-128" width="336" height="336" fill="white"/>
+</clipPath>
+</defs>
+</svg>

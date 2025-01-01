@@ -1,0 +1,50 @@
+.carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.slides {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+
+.slide {
+    flex: 0 0 90%; /* Each slide takes full width */
+    font-size: 1.5rem;
+}
+
+
+.slide-in {
+    animation: slideIn 1s ease forwards;
+}
+
+@keyframes slideIn {
+    0% { transform: translateX(-100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+.current-day::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background-color: #3E4784; /* Dot color */
+    border-radius: 50%;
+    position: absolute;
+    bottom: 4px; /* Adjust based on where you want the dot */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .selected-day::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background-color: #3E4784; /* Dot color */
+    border-radius: 50%;
+    position: absolute;
+    bottom: 4px; /* Adjust based on where you want the dot */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  

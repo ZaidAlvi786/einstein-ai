@@ -1,0 +1,162 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline;
+  text-decoration: none;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+blockquote,
+q {
+  quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: '';
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.textInput::placeholder {
+  color: #d5d9eb;
+}
+
+.tableTextInput::placeholder {
+  text-align: center !important;
+}
+
+.pagination-active-bg {
+  background-color: #f5f6fa !important;
+}
+
+.mantine-Pagination-root button {
+  color: #000 !important;
+}
+
+.circleImg {
+  position: absolute;
+  width: 12.5rem;
+  top: -0.75rem;
+}
+
+.uploadedImages {
+  width: 5.938rem;
+  height: 4.299rem;
+  object-fit: contain;
+}
+
+.uploadedImage {
+  width: 4.688rem;
+  height: 3.125rem;
+  object-fit: contain;
+}
+
+.uploadBtn {
+  height: 3.125rem;
+  width: 4.688rem;
+}
+
+.uploadBtnUnit {
+  height: 4.294rem;
+  width: 5.938rem;
+}
+
+.phoneCustom::placeholder {
+  color: #667085 !important;
+  font-size: 1rem !important;
+}
+
+input:placeholder-shown {
+  text-overflow: ellipsis;
+}
+
+.modal-scroll {
+  scrollbar-width: none !important;
+}
+
+.circle-small {
+  display: inline-block;
+  position: relative;
+  max-width: 68px;
+  max-height: 68px;
+  margin-left: 11px;
+}
+
+.circle-small svg {
+  max-width: 68px;
+  max-height: 68px;
+}
+
+.circle-small .bg {
+  fill: none;
+  stroke-width: 6px;
+  stroke: #eaecf0;
+}
+
+.circle-small .progress {
+  fill: none;
+  stroke-width: 6px;
+  stroke: #3e4784;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.circle-small .text {
+  position: absolute;
+  width: 100%;
+  top: 25px;
+  left: 1px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  color: #101828;
+}
+
+strong {
+  font-weight: 600;
+}
+
+em {
+  font-style: italic;
+}

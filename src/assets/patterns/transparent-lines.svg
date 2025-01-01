@@ -1,0 +1,67 @@
+<svg width="768" height="508" viewBox="0 0 768 508" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1_6868)">
+<mask id="mask0_1_6868" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="508">
+<path d="M768 0H0V508H768V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1_6868)">
+<mask id="mask1_1_6868" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="-260" width="768" height="768">
+<path d="M768 -260H0V508H768V-260Z" fill="url(#paint0_radial_1_6868)"/>
+</mask>
+<g mask="url(#mask1_1_6868)">
+<mask id="mask2_1_6868" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="-260" width="768" height="768">
+<path d="M768 -260H0V508H768V-260Z" fill="white"/>
+</mask>
+<g mask="url(#mask2_1_6868)">
+<mask id="mask3_1_6868" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="-260" width="768" height="768">
+<path d="M768 -260H0V508H768V-260Z" fill="white"/>
+</mask>
+<g mask="url(#mask3_1_6868)">
+<path d="M0.5 -260V508" stroke="#EAECF0"/>
+<path d="M48.5 -260V508" stroke="#EAECF0"/>
+<path d="M96.5 -260V508" stroke="#EAECF0"/>
+<path d="M144.5 -260V508" stroke="#EAECF0"/>
+<path d="M192.5 -260V508" stroke="#EAECF0"/>
+<path d="M240.5 -260V508" stroke="#EAECF0"/>
+<path d="M288.5 -260V508" stroke="#EAECF0"/>
+<path d="M336.5 -260V508" stroke="#EAECF0"/>
+<path d="M384.5 -260V508" stroke="#EAECF0"/>
+<path d="M432.5 -260V508" stroke="#EAECF0"/>
+<path d="M480.5 -260V508" stroke="#EAECF0"/>
+<path d="M528.5 -260V508" stroke="#EAECF0"/>
+<path d="M576.5 -260V508" stroke="#EAECF0"/>
+<path d="M624.5 -260V508" stroke="#EAECF0"/>
+<path d="M672.5 -260V508" stroke="#EAECF0"/>
+<path d="M720.5 -260V508" stroke="#EAECF0"/>
+</g>
+<path d="M767.5 -259.5H0.5V507.5H767.5V-259.5Z" stroke="#EAECF0"/>
+<mask id="mask4_1_6868" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="-260" width="768" height="768">
+<path d="M768 -260H0V508H768V-260Z" fill="white"/>
+</mask>
+<g mask="url(#mask4_1_6868)">
+<path d="M0 27.5H768" stroke="#EAECF0"/>
+<path d="M0 75.5H768" stroke="#EAECF0"/>
+<path d="M0 123.5H768" stroke="#EAECF0"/>
+<path d="M0 171.5H768" stroke="#EAECF0"/>
+<path d="M0 219.5H768" stroke="#EAECF0"/>
+<path d="M0 267.5H768" stroke="#EAECF0"/>
+<path d="M0 315.5H768" stroke="#EAECF0"/>
+<path d="M0 363.5H768" stroke="#EAECF0"/>
+<path d="M0 411.5H768" stroke="#EAECF0"/>
+<path d="M0 459.5H768" stroke="#EAECF0"/>
+<path d="M0 507.5H768" stroke="#EAECF0"/>
+</g>
+<path d="M767.5 -259.5H0.5V507.5H767.5V-259.5Z" stroke="#EAECF0"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<radialGradient id="paint0_radial_1_6868" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(384 124) rotate(90) scale(384)">
+<stop/>
+<stop offset="1" stop-opacity="0"/>
+</radialGradient>
+<clipPath id="clip0_1_6868">
+<rect width="768" height="508" fill="white"/>
+</clipPath>
+</defs>
+</svg>
