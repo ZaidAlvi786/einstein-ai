@@ -14,6 +14,7 @@ const EditChatBlock = ({
   getChatHistory,
   isHistoryApiLoading,
 }: any) => {
+  console.log("🚀 ~ message:edit blocl", message)
   const textareaRef = useRef(null);
   const ws = useAppSelector((state: any) => state.webSocket.ws);
   const connected = useAppSelector((state: any) => state.webSocket.connected);
@@ -30,7 +31,6 @@ const EditChatBlock = ({
   const activeChatModel = useAppSelector(
     (state: any) => state.chat.activeChatModel
   );
-
 
   useEffect(() => {
     // Adjust initial width and height based on content
@@ -61,7 +61,7 @@ const EditChatBlock = ({
     setEditingMessage(e.target.value);
     autoResizeTextarea(e.target);
   };
-  const sendEditMessage = () => {  
+  const sendEditMessage = () => {
     if (editingMessage?.length === 0) return;
     if (isViewPermission) {
       toast.error("You have only permission to view.");
@@ -79,7 +79,10 @@ const EditChatBlock = ({
             new_prompt: editingMessage,
             userID: auth?.user?.userID,
             index: index,
-            workspace_id: activeChat?.role ? activeChat?.workspace_id : workspace_id_local, // activeChat?.role in case of shared chat
+            workspace_id: activeChat?.role
+              ? activeChat?.workspace_id
+              : workspace_id_local, // activeChat?.role in case of shared chat
+            file_url: message[0]?.file_url || null,
           },
         };
         ws?.send(JSON.stringify(data));

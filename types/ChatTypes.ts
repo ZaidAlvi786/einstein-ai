@@ -20,7 +20,8 @@ export interface UserMessage {
   user_id: string;
   [key: string]: unknown;
   reply?: string;
-  edited?:boolean
+  edited?:boolean;
+  file_url?:Array<string>;
 }
 
 export type ChatResponse = [UserMessage, AssistantRecord][];
@@ -38,6 +39,7 @@ export interface AssistantChatProps {
   showGogleIcon: boolean;
   setShowReply: any;
   showReply:any;
+  file_url?:Array<string>
 }
 
 export interface UserChatProps {
@@ -62,6 +64,7 @@ export interface LoaderState {
   prompt: string;
   isloading: boolean;
   index: number | null;
+  attachedFiles: any;
 }
 
 export interface ChatInputProps {
@@ -70,11 +73,13 @@ export interface ChatInputProps {
       prompt: string;
       isloading: boolean;
       index: number | null;
+      attachedFiles: any;
     }>
   >;
   scrollRef: React.RefObject<HTMLDivElement>;
   showReply: any;
   setShowReply: any;
+  showLoader?:any
 }
 
 export interface ChatProps {

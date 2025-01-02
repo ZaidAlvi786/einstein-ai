@@ -67,6 +67,7 @@ const DynamicToolsSideChatPopup: React.FC<DynamicToolsSideChatPopupProps> = ({
   message,
   onStaticToolModelClicked,
 }) => {
+  console.log("🚀 ~ message: ddddyyy", message)
   const router = useRouter();
   const searchParams = useSearchParams();
 

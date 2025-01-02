@@ -55,7 +55,7 @@ const ChatBlock: React.FC<ChatBlockProps> = ({
       <div key={`${index}-user`} className={`flex justify-end mb-2.5`}>
         {editModeIndex === index ? (
           <EditChatBlock
-            message={chatRecord[1]}
+            message={chatRecord}
             index={index}
             editingMessage={editingMessage}
             setEditingMessage={setEditingMessage}
@@ -84,6 +84,7 @@ const ChatBlock: React.FC<ChatBlockProps> = ({
             <AssistantChat
               setShowLoader={setShowLoader}
               message={chatRecord[1]}
+              file_url={chatRecord[0]?.file_url}
               index={index}
               chatError={chatError}
               showGogleIcon={showGogleIcon}
