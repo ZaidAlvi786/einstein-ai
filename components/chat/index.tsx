@@ -24,6 +24,8 @@ import { getWebSocketURL } from "@/config";
 import DraggableIframe from "./DraggableIframe";
 import toast from "react-hot-toast";
 import ReplyBlockUser from "./typedChatComponents/ReplyBlockUser";
+import { Image } from "@nextui-org/react";
+import { AttachedImageBlock } from "./typedChatComponents/AttachedImageBlock";
 
 interface ChatError {
   index: number | null;
@@ -51,13 +53,15 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
     errMsg: "Contact Support Team for help: contact@togl.ai",
     userMsg: "",
   });
-  console.log("🚀 ~ chatError:", chatError)
+  console.log("🚀 ~ chatError:", chatError);
 
   const [showLoader, setShowLoader] = useState<LoaderState>({
     prompt: "",
     isloading: false,
     index: null,
+    attachedFiles: [],
   });
+  console.log("🚀 ~ showLoader:", showLoader);
   const [editModeIndex, setEditModeIndex] = useState(-1);
 
   useEffect(() => {
@@ -74,6 +78,7 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
         prompt: "",
         isloading: false,
         index: null,
+        attachedFiles: [],
       });
       return;
     }
@@ -110,6 +115,7 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
           prompt: "",
           isloading: false,
           index: null,
+          attachedFiles: [],
         });
         setShowReply({
           message: null,
@@ -171,7 +177,10 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
           setChatError({
             ...chatError,
             index: IncomingMessage.index,
-            errMsg: IncomingMessage.content.message || IncomingMessage.content.data || "Something went wrong",
+            errMsg:
+              IncomingMessage.content.message ||
+              IncomingMessage.content.data ||
+              "Something went wrong",
             userMsg: userPrompt,
           });
         }
@@ -222,10 +231,12 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
                 </>
               ))
             : !showLoader?.isloading && <LetsMakeSomething />}
+
           {showLoader?.isloading && showLoader.index === null && (
             <>
               {showReply?.text && <ReplyBlockUser text={showReply.text} />}
               <div className="w-full flex justify-end">
+              
                 <div className="max-w-max break-words text-[20px] text-[#FFF] font-helvetica font-normal leading-8 bg-[#272727] rounded-[20px] py-2 px-5 ">
                   <div className="user-prompt">
                     <div
@@ -237,6 +248,11 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
                   </div>
                 </div>
               </div>
+                {showLoader?.attachedFiles?.length > 0 && (
+                <div className="w-full flex justify-end items-center mt-2">
+                  <AttachedImageBlock attachedFiles={showLoader?.attachedFiles}/>
+                </div>
+              )}
               <Loader />
             </>
           )}
@@ -261,6 +277,7 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
               scrollRef={scrollRef}
               showReply={showReply}
               setShowReply={setShowReply}
+              showLoader={showLoader}
             />
           </div>
           <div>

@@ -23,6 +23,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
   showGogleIcon,
   setShowReply,
   showReply,
+  file_url,
 }) => {
   const [currentMessageVersionIndex, setCurrentMessageVersionIndex] =
     useState(0);
@@ -34,8 +35,8 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
     tool_id: message?.content[0]?.tool_id,
   });
   const activeChatModel = useAppSelector(
-      (state: any) => state.chat.activeChatModel
-    );
+    (state: any) => state.chat.activeChatModel
+  );
   const searchParams: any = useSearchParams();
   const chatHistoryID: any = searchParams?.get("chat") ?? null;
   const auth: any = useAuth();
@@ -53,13 +54,23 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
         data = {
           action: "model_chat",
           endpoint: "model",
-          request: { ...request, source: "modelToolsIcon", prompt: "" },
+          request: {
+            ...request,
+            source: "modelToolsIcon",
+            prompt: "",
+            file_url: file_url || null,
+          },
         };
         ws?.send(JSON.stringify(data));
       } else if (tool_type === "gpt") {
         data = {
           action: "model_chat",
-          request: { ...request, source: "gptToolsIcon", prompt: "" },
+          request: {
+            ...request,
+            source: "gptToolsIcon",
+            prompt: "",
+            file_url: file_url || null,
+          },
         };
         ws?.send(JSON.stringify(data));
       }
@@ -81,7 +92,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
     const selectedText = window.getSelection()?.toString();
     if (selectedText) {
       setSelectedText(selectedText);
-      setShowReply({...showReply, index:index});
+      setShowReply({ ...showReply, index: index });
     }
   };
 
@@ -111,7 +122,9 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
           request_type: "regenerate",
           tool_id: message?.content[0]?.tool_id,
           userID: auth?.user?.userID,
-          workspace_id: activeChat?.role ? activeChat?.workspace_id : workspace_id_local, // activeChat?.role in case of shared chat,
+          workspace_id: activeChat?.role
+            ? activeChat?.workspace_id
+            : workspace_id_local, // activeChat?.role in case of shared chat,
           group_id: activeGroup?._id ?? "",
           id: chatHistoryID,
           source: "modelToolsIcon",
@@ -120,6 +133,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
             toolCategory?.category == "gpt"
               ? activeChatModel?.chat_model
               : null,
+          file_url: file_url || null,
         };
 
         DynamicToolsRegeneration(request, toolCategory?.category);
@@ -143,8 +157,11 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
           index: index,
           id: chatHistoryID,
           userID: auth?.user?.userID,
-          workspace_id: activeChat?.role ? activeChat?.workspace_id : workspace_id_local, // activeChat?.role in case of shared chat,
+          workspace_id: activeChat?.role
+            ? activeChat?.workspace_id
+            : workspace_id_local, // activeChat?.role in case of shared chat,
           group_id: activeGroup?._id ?? "",
+          file_url: file_url || null,
         },
       };
       ws?.send(JSON.stringify(data));
@@ -170,7 +187,10 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
           tool_id: item.id,
           type: item.modelValue,
           userID: auth?.user?.userID,
-          workspace_id: activeChat?.role ? activeChat?.workspace_id : workspace_id_local, // activeChat?.role in case of shared chat,
+          workspace_id: activeChat?.role
+            ? activeChat?.workspace_id
+            : workspace_id_local, // activeChat?.role in case of shared chat,
+          file_url: file_url || null,
         },
       };
       ws?.send(JSON.stringify(data));
@@ -221,7 +241,8 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
               <div
                 className={`absolute top-[-31px] transition-opacity duration-1000 flex items-center gap-1`}
               >
-                {window.getSelection()?.toString() && showReply?.index === index && (
+                {window.getSelection()?.toString() &&
+                  showReply?.index === index && (
                     <Tooltip
                       content={<p className="text-[#FFF]">{"Reply"}</p>}
                       showArrow
@@ -266,7 +287,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
                             text: window.getSelection()?.toString(),
                             showInInput: true,
                           });
-                          window.getSelection()?.removeAllRanges()
+                          window.getSelection()?.removeAllRanges();
                         }}
                       />
                     </Tooltip>

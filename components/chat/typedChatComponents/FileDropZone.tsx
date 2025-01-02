@@ -30,71 +30,153 @@ export function FileDropZone({
   preview,
   setPreview,
 }: FileDropZoneProps) {
+  console.log("🚀 ~ preview:", preview)
   const [isDragging, setIsDragging] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
   const [UploadImage] = useUploadImageMutation();
 
+  // const handleFiles = useCallback(
+  //   (newFiles: File[]) => {
+  //     // const validFiles = newFiles.filter(
+  //     //   (file) =>
+  //     //     (file.type.startsWith("image/") ||
+  //     //       file.type.startsWith("video/") ||
+  //     //       file.type === "application/pdf" ||
+  //     //       file.type.includes("officedocument")) &&
+  //     //     files.length + newFiles.length <= maxFiles
+  //     // );
+  //     const validFiles = newFiles.filter((file) =>
+  //       file.type.startsWith("image/")
+  //     );
+
+  //     const InValidFiles = newFiles.filter(
+  //       (file) => !file.type.startsWith("image/")
+  //     );
+  //     // Show alert if there are any invalid files in case of drag and drop along with image files
+  //     if (InValidFiles.length > 0) {
+  //       toast.error("You can only upload images");
+  //     }
+
+  //     if (validFiles.length > 0) {
+  //       // only for preview
+  //       const newPreviews = validFiles.map((file) => ({
+  //         url:
+  //           file.type.startsWith("image/") || file.type.startsWith("video/")
+  //             ? URL.createObjectURL(file) // Generate URL for preview
+  //             : null,
+  //         type: file.type,
+  //         name: file.name,
+  //       }));
+  //       setFiles((prev) => [...prev, ...validFiles]);
+  //       onFilesSelected([...files, ...validFiles]);
+  //       // upload to get S3 url
+  //       // validFiles.forEach((file) => {
+  //       uploadFileToS3(validFiles, newPreviews);
+  //       // });
+  //     } else {
+  //       toast.error("You can only upload images");
+  //       setIsLoading(false);
+  //     }
+  //   },
+  //   [files, onFilesSelected]
+  // );
+
+  // const uploadFileToS3 = async (file: Array<File>, previewFiles: any) => {
+  //   try {
+  //     const formData = new FormData();
+  //     file.forEach((file) => {
+  //       formData.append("image", file);
+  //     });
+
+  //     UploadImage(formData)
+  //       .unwrap()
+  //       .then((response) => {
+  //         console.log("🚀 ~ .then ~ response:", response)
+  //         const url = response?.url;
+  //         setAttachedFiles((prev: any) => [...prev, url]);
+  //         setPreview((prev: any) => [...prev, ...previewFiles]);
+  //       })
+  //       .catch((error) => {
+  //         // console.error(`Failed to upload file ${file.name}:`, error);
+  //         toast.error("Failed to upload file");
+  //       })
+  //       .finally(() => {
+  //         setIsLoading(false);
+  //       });
+  //   } catch (error) {
+  //     // console.error(`Failed to upload file ${file.name}:`, error);
+  //     toast.error("Failed to upload file");
+  //   }
+  // };
+
   const handleFiles = useCallback(
     (newFiles: File[]) => {
-      // const validFiles = newFiles.filter(
-      //   (file) =>
-      //     (file.type.startsWith("image/") ||
-      //       file.type.startsWith("video/") ||
-      //       file.type === "application/pdf" ||
-      //       file.type.includes("officedocument")) &&
-      //     files.length + newFiles.length <= maxFiles
-      // );
-      const validFiles = newFiles.filter((file) =>
-        file.type.startsWith("image/")
-      );
-
-      const InValidFiles = newFiles.filter(
-        (file) => !file.type.startsWith("image/")
-      );
-      // Show alert if there are any invalid files in case of drag and drop along with image files
-      if (InValidFiles.length > 0) {
-        toast.error("You can only upload images");
+      if(newFiles?.length > 2 || preview?.length + newFiles.length > 2) {
+        toast.error("Please select upto 2 files")
+        setIsLoading(false)
+        return 
       }
-
+      // Define size limit in bytes (900 KB = 900 * 1024)
+      const sizeLimit = 900 * 1024;
+  
+      // Filter valid files based on type and size
+      const validFiles = newFiles.filter(
+        (file) => file.type.startsWith("image/") && file.size <= sizeLimit
+      );
+  
+      // Filter invalid files
+      const InValidFiles = newFiles.filter(
+        (file) =>
+          !file.type.startsWith("image/") || file.size > sizeLimit
+      );
+  
+      // Show alert if there are any invalid files
+      if (InValidFiles.length > 0) {
+        toast.error(
+          "You can only upload image files smaller than 900 KB."
+        );
+      }
+  
       if (validFiles.length > 0) {
-        // only for preview
+        // Only for preview
         const newPreviews = validFiles.map((file) => ({
-          url:
-            file.type.startsWith("image/") || file.type.startsWith("video/")
-              ? URL.createObjectURL(file) // Generate URL for preview
-              : null,
+          url: URL.createObjectURL(file), // Generate URL for preview
           type: file.type,
           name: file.name,
         }));
         setFiles((prev) => [...prev, ...validFiles]);
         onFilesSelected([...files, ...validFiles]);
-        // upload to get S3 url
-        // validFiles.forEach((file) => {
-        uploadFileToS3(validFiles, newPreviews);
-        // });
+        setPreview((prev: any) => [...prev, ...newPreviews]);
+  
+        // Upload valid files to get S3 URLs
+        validFiles.forEach((file) => {
+          uploadFileToS3(file, newPreviews);
+        });
       } else {
-        toast.error("You can only upload images");
+        toast.error("You can only upload image files smaller than 900 KB.");
         setIsLoading(false);
       }
     },
     [files, onFilesSelected]
   );
+  
 
-  const uploadFileToS3 = async (file: Array<File>, previewFiles: any) => {
+  const uploadFileToS3 = async (file: File, previewFiles: any) => {
     try {
       const formData = new FormData();
-      file.forEach((file) => {
-        formData.append("image", file);
-      });
+      // file.forEach((file) => {
+      //   formData.append("image", file);
+      // });
+      formData.append("image", file);
 
       UploadImage(formData)
         .unwrap()
         .then((response) => {
-          console.log("🚀 ~ .then ~ response:", response)
+          console.log("🚀 ~ .then ~ response:", response);
           const url = response?.url;
           setAttachedFiles((prev: any) => [...prev, url]);
-          setPreview((prev: any) => [...prev, ...previewFiles]);
+          // setPreview((prev: any) => [...prev, ...previewFiles]);
         })
         .catch((error) => {
           // console.error(`Failed to upload file ${file.name}:`, error);
@@ -143,7 +225,7 @@ export function FileDropZone({
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback( 
+  const handleDragLeave = useCallback(
     (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -167,7 +249,7 @@ export function FileDropZone({
   const removeFile = useCallback(
     (index: number) => {
       URL.revokeObjectURL(preview[index]);
-      setPreview((prev:any) => prev.filter((_:any, i:any) => i !== index));
+      setPreview((prev: any) => prev.filter((_: any, i: any) => i !== index));
       setFiles((prev) => prev.filter((_, i) => i !== index));
       setAttachedFiles((prev: any) =>
         prev.filter((_: any, i: any) => i !== index)
@@ -214,23 +296,26 @@ export function FileDropZone({
           onClick={() => setIsDragging(false)}
         >
           <div className="relative text-white rounded-lg p-8 text-center cursor-pointer transition-colors w-3/4 max-w-2xl bg-transparent">
-            <div className="flex items-center justify-end p-1" style={{border: "1px solid white", borderRadius: "50px", width:'80px', margin:'20px auto'}}>
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              </div>
+            <div
+              className="flex items-center justify-end p-1"
+              style={{
+                border: "1px solid white",
+                borderRadius: "50px",
+                width: "80px",
+                margin: "20px auto",
+              }}
+            >
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center"></div>
             </div>
-            <p className="text-3xl font-bold">
-              Add to Chat 
-            </p>
-            <p className="text-md mt-3">
-              Drop image files here 
-            </p>
+            <p className="text-3xl font-bold">Add to Chat</p>
+            <p className="text-md mt-3">Drop image files here</p>
           </div>
         </div>
       )}
 
       {preview.length > 0 && (
         <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-7 gap-4 p-2">
-          {preview.map(({ url, type, name }: any, index:any) => (
+          {preview.map(({ url, type, name }: any, index: any) => (
             <div key={name} className="relative group">
               {type.startsWith("image/") ? (
                 <img

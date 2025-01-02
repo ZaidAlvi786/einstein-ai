@@ -31,6 +31,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   scrollRef,
   showReply,
   setShowReply,
+  showLoader,
 }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -55,12 +56,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [CreateEmptyChat] = useCreateEmptyChatMutation();
   const workspace_id_local = localStorage.getItem("workspace_id");
   const [attachedFiles, setAttachedFiles] = useState<any>([]);
-  console.log("🚀 ~ attachedFiles:", attachedFiles)
+  console.log("🚀 ~ attachedFiles:", attachedFiles);
   const [isLoadingAttachedFiles, setIsLoadingAttachedFiles] = useState(false);
   const [preview, setPreview] = useState<string[]>([]);
 
-
   const handleCreateEmptyChat = () => {
+    if (value.length === 0) return; // only run if some text are there in chat input
     try {
       const data = {
         workspace_id: workspace_id_local,
@@ -70,7 +71,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       let newChatId = null;
       CreateEmptyChat(data).then((res) => {
         newChatId = res.data.chat_id;
-        TextGenerate(res.data.chat_id); 
+        TextGenerate(res.data.chat_id);
       });
       return newChatId;
     } catch (error) {
@@ -84,6 +85,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const TextGenerate = (chatId: string) => {
+    if (value.length === 0 || showLoader?.isloading) return;
     if (Object.keys(activeChatModel).length === 0)
       return toast.error("Please subscribe any tool for chat");
     if (auth.user.price > 0) {
@@ -98,6 +100,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 ? "model_chat"
                 : activeChatModel?.modelValue ?? "",
             request: {
+              file_url: attachedFiles,
               userID: auth?.user?.userID,
               type: activeChatModel?.modelName ?? "",
               request_type: "chat",
@@ -118,15 +121,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
               reply: showReply?.text || null, // selected text
             },
           };
-
           ws?.send(JSON.stringify(data));
           setValue("");
-          setAttachedFiles([])
-          setPreview([])
+          setAttachedFiles([]);
+          setPreview([]);
           setShowLoader({
             prompt: value,
             isloading: true,
             index: null,
+            attachedFiles: attachedFiles,
           });
           setTimeout(() => {
             if (scrollRef.current) {
@@ -257,7 +260,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       );
     }
   };
-  
+
   useEffect(() => {
     adjustHeight();
   }, [value]);
@@ -285,15 +288,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
       {showReply?.showInInput && showReply?.text?.trim()?.length > 0 && (
         <ReplyBlockInput showReply={showReply} setShowReply={setShowReply} />
       )}
-      <FileDropZone
-        fileInputRefNew={fileInputRefNew}
-        onFilesSelected={handleFilesSelected}
-        accept="image/*"
-        setAttachedFiles={setAttachedFiles}
-        setIsLoading={setIsLoadingAttachedFiles}
-        preview={preview}
-        setPreview={setPreview}
-      />
+      {activeChatModel?.image_upload_support && (
+        <FileDropZone
+          fileInputRefNew={fileInputRefNew}
+          onFilesSelected={handleFilesSelected}
+          accept="image/*"
+          setAttachedFiles={setAttachedFiles}
+          setIsLoading={setIsLoadingAttachedFiles}
+          preview={preview}
+          setPreview={setPreview}
+        />
+      )}
       <div className={`flex items-end pr-[3px] w-full h-auto`}>
         <Avatar
           src={activeChatModel?.iconSrc || activeChatModel?.logo || ""}
@@ -311,20 +316,22 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           }
         />
-        <div className="flex items-center 2xl:min-w-[25px] xl:min-w-[18px] 2xl:h-[25px] xl:h-[18px] ml-[4px] justify-center my-auto">
-          {isLoadingAttachedFiles ? (
-            <Spinner size="sm" color="white" />
-          ) : (
-            <Image
-              alt="attach icon"
-              width={11}
-              height={20}
-              src={"svg/attach.svg"}
-              className={`cursor-pointer max-h-10 mx-auto 2xl:w-[10.15px] xl:w-[10.15px] 2xl:h-[18.46px] xl:h-[18.46px] `}
-              onClick={handleImageClick}
-            />
-          )}
-        </div>
+        {activeChatModel?.image_upload_support && (
+          <div className="flex items-center 2xl:min-w-[25px] xl:min-w-[18px] 2xl:h-[25px] xl:h-[18px] ml-[4px] justify-center my-auto">
+            {isLoadingAttachedFiles ? (
+              <Spinner size="sm" color="white" />
+            ) : (
+              <Image
+                alt="attach icon"
+                width={11}
+                height={20}
+                src={"svg/attach.svg"}
+                className={`cursor-pointer max-h-10 mx-auto 2xl:w-[10.15px] xl:w-[10.15px] 2xl:h-[18.46px] xl:h-[18.46px] `}
+                onClick={handleImageClick}
+              />
+            )}
+          </div>
+        )}
         <textarea
           id="review-text"
           value={value}
@@ -354,7 +361,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
         />
         <button
           className={`cursor-pointer flex-row mr-[0px] w-[44.8px] h-[38px] rounded-full flex items-center justify-center transition-all duration-75 ${
-            value.length ? "bg-[#0A84FF]" : "bg-[#121212]"
+            value.length > 0 && !showLoader?.isloading
+              ? "bg-[#0A84FF]"
+              : "bg-[#121212]"
           }`}
           // onClick={TextGenerate}
           onClick={() =>
@@ -362,12 +371,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
               ? handleCreateEmptyChat()
               : TextGenerate(activeChat?.id)
           }
-          disabled={value.length === 0}
+          disabled={value.length === 0 || showLoader?.isloading}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
         >
           {/* <Image alt='send-icon' width={15} height={16} src='/svg/send.svg' /> */}
-          <SendIcon color={isButtonHovered || value.length ? "white" : ""} />
+          <SendIcon
+            color={
+              isButtonHovered || (value.length > 0 && !showLoader?.isloading)
+                ? "white"
+                : ""
+            }
+          />
         </button>
       </div>
     </div>

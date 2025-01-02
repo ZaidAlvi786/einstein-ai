@@ -717,6 +717,14 @@ export const chatApi = createApi({
       }),
       providesTags: ["send-invite-to-non-platform-user"]
     }),
+    duplicateChatId: builder.mutation({
+      query: (data) => ({
+        url: `/ai/duplicate-chat-by-id?chat_id=${data.chat_id}`,
+        method: "POST"
+      
+      }),
+      providesTags: ["duplicate-chat-by-id"]
+    }),
   }),
 });
 
@@ -811,4 +819,5 @@ export const {
   useToolWebhookMutation,
   useCreateEmptyChatMutation,
   useSendInviteToNonPlatformUserMutation,
+  useDuplicateChatIdMutation
 } = chatApi;
