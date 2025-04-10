@@ -12,6 +12,7 @@ import { AuthProvider } from "../app/authContext/auth";
 import StoreProvider from "./StoreProvider";
 import Head from "next/head";
 import Script from "next/script";
+import { BlurSideBarProvider } from "@/components/context/blurSideBarContext";
 
 const nasalization = localFont({
   src: "./nasalization-rg.otf",
@@ -64,7 +65,9 @@ export default function RootLayout({ children }) {
           <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <AuthProvider>
               <ModelStatusProvider>
-                <NewChatProvider>{children}</NewChatProvider>
+                <NewChatProvider>
+                  <BlurSideBarProvider>{children}</BlurSideBarProvider>
+                </NewChatProvider>
               </ModelStatusProvider>
             </AuthProvider>
           </GoogleOAuthProvider>

@@ -78,6 +78,14 @@ export const paymentApi = createApi({
         "get-user-subscribed-plan",
       ],
     }),
+    onboardingToPlatformPlan: builder.mutation({
+      query: ({ params }) => ({
+        url: `/billing/onboarding-to-platform-plan`,
+        method: "POST",
+        params,
+      }),
+      providesTags: ["onboarding-to-platform-plan"],
+    }),
     attachPaymentMethodToCustomer: builder.mutation({
       query: (data) => ({
         url: `/stripe/attach-payment-method-to-customer`,
@@ -141,6 +149,14 @@ export const paymentApi = createApi({
       }),
       providesTags: ["get-user-subscribed-plan"],
     }),
+    getPaymentLink: builder.query({
+      query: ({payment_type}) => ({
+        // url: `/billing/get-user-subscribed-plan`,
+        url: `/stripe/get-payment-link?plan_type=${payment_type}`,
+        method: "GET",
+      }),
+      providesTags: ["get-payment-link"],
+    }),
     cancelSubscription: builder.mutation({
       query: () => ({
         url: `/billing/cancel-subscription`,
@@ -169,11 +185,13 @@ export const {
   useGetNextInvoiceDateQuery,
   useMakePaymentMutation,
   useSubscribeToPlatformPlanMutation,
+  useOnboardingToPlatformPlanMutation,
   useAttachPaymentMethodToCustomerMutation,
   useGetAutoTopupStatusQuery,
   useSetAutoTopupStatusMutation,
   useUpdateAutoTopupStatusMutation,
   useGetUserSubscribedPlanQuery,
+  useGetPaymentLinkQuery,
   useFetchUserSingleHistoryOverviewQuery,
   useCancelSubscriptionMutation,
   useDeleteCustomerStripeCardMutation,

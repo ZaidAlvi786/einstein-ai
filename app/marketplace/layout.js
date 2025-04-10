@@ -20,7 +20,7 @@ import RightArrow from "@/app/assets/svg/right-arrow.svg";
 const navLinks = [
   { href: "/marketplace", label: "Home" },
   { href: "/marketplace/models", label: "Models" },
-  { href: "/marketplace/plugins", label: "Plugins" },
+  // { href: "/marketplace/plugins", label: "Plugins" },
   // { href: "/marketplace/gpts", label: "Egos" },
   { href: "/marketplace/gpts", label: "GPT's" },
   // { href: "/marketplace/widgets", label: "Widgets" },
@@ -77,41 +77,16 @@ const Layout = ({ children }) => {
               wrapper: "!max-w-full gap-[40.44px]",
             }}
           >
-            <NavbarBrand className='grow-0 min-w-[31.51px]'>
-              <div className='flex gap-[19.51px] items-center cursor-pointer'>
-                {/* Previous Button */}
-                <button
-                  onClick={handlePrev}
-                  disabled={currentIndex <= 0}
-                  className={` rounded-full ${
-                    currentIndex <= 0
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-[#D2D2D2] hover:text-white"
-                  }`}
-                  aria-label='Previous'
-                >
-                  <LeftArrow className='h-[10.03px] w-[6px]' />
-                </button>
-
-                {/* Next Button */}
-                <button
-                  onClick={handleNext}
-                  disabled={currentIndex >= navLinks.length - 1}
-                  className={` rounded-full ${
-                    currentIndex >= navLinks.length - 1
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-[#D2D2D2] hover:text-white"
-                  }`}
-                  aria-label='Next'
-                >
-                  <RightArrow className='h-[11.03px] w-[6px]' />
-                </button>
+            <NavbarBrand className='grow-0'>
+              <div
+                className='flex gap-1 items-center cursor-pointer'
+                onClick={() => router.push("/")}
+              >
+                <ChevronLeftIcon className='w-5 h-5 text-[#D2D2D2]' />
+                <p className='text-white font-normal text-[13px] font-inter'>
+                  Back To Chat
+                </p>
               </div>
-              {/* <span className="ml-[26px] flex-shrink-0">
-                <Link href={`/marketplace`}>
-                  <Image src={WhiteEarth} className="w-[24px] h-[24px]" />
-                </Link>
-              </span> */}
             </NavbarBrand>
             <NavbarContent className={`hidden sm:flex gap-6`} justify='start'>
               {navLinks.map((link, index) => (

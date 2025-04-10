@@ -1,6 +1,7 @@
 .next/
 .swc/
-# .*.env
+.*.env
+.env
 .idea/
 build
 .DS_Store
