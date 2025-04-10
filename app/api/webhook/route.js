@@ -5,7 +5,7 @@ import headers from "next/headers";
 import Stripe from "stripe";
 // Handles POST requests to /api
 const stripe = require("stripe")(
-  
+  "sk_test_51OeLf7CqP6v2blZgQwQW2HQtJbNOcCL4hJV5XIHOEZ8kEEpUlIWH1S3D2aXQsGXj3Q5j4allzWrGadKV0iD4816W00fgd131p6"
 );
 export async function POST(request) {
   // const sig =await request.headers;

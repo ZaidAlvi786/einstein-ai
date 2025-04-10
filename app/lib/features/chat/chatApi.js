@@ -385,6 +385,15 @@ export const chatApi = createApi({
       providesTags: ["upload-image"],
       invalidatesTags: ["getuser"],
     }),
+    uploadFile: builder.mutation({
+      query: (data) => ({
+        url: `/ai/uploadFile`,
+        method: "POST",
+        body: data,
+      }),
+      providesTags: ["upload-file"],
+      invalidatesTags: ["getuser"],
+    }),
     // for notification api
     getUsersNotifications: builder.query({
       query: (data) => ({
@@ -686,7 +695,7 @@ export const chatApi = createApi({
       }),
       providesTags: ["search-tools"],
       // invalidatesTags: ['subscribe-tool', 'cancel-tool-subscription'],
-    }),
+    }),   
     unsubscribeTool: builder.mutation({
       query: (data) => ({
         url: `/tool/unsubscribe-tool?subscription_id=${data.subscription_id}`,
@@ -724,6 +733,46 @@ export const chatApi = createApi({
       
       }),
       providesTags: ["duplicate-chat-by-id"]
+    }),
+    getPinnedTools: builder.query({
+      query: () => ({
+        url: `/tool/get-pinned-tools`,
+        method: "GET",
+      }),
+      // providesTags: ["get-pinned-tools"],
+      // invalidatesTags: ['subscribe-tool', 'cancel-tool-subscription'],
+    }),
+    pinnedTool: builder.mutation({
+      query: (data) => ({
+        url: `/tool/pin-tool?tool_id=${data.tool_id}`,
+        method: "POST"
+      
+      }),
+      providesTags: ["pin-tool"]
+    }),
+    newUserTrialActivate: builder.mutation({
+      query: () => ({
+        url: `/auth/auto-activate-trial-for-new-user`,
+        method: "POST"
+      
+      }),
+      providesTags: ["auto-activate-trial-for-new-user"]
+    }),
+    unPinnedTool: builder.mutation({
+      query: (data) => ({
+        url: `/tool/unpin-tool?tool_id=${data.tool_id}`,
+        method: "DELETE"
+      
+      }),
+      providesTags: ["pin-tool"]
+    }),
+    reOrderPinnedTool: builder.mutation({
+      query: (data) => ({
+        url: `/tool/reorder-pinned-tools`,
+        method: "PUT",
+        body: data,
+      }),
+      providesTags: ["reorder-pinned-tools"],
     }),
   }),
 });
@@ -778,6 +827,7 @@ export const {
   // for users details
   useGetUserQuery,
   useUploadImageMutation,
+  useUploadFileMutation,
   useGenerateDataTokenForToolsMutation,
   // for notification api
   useGetUsersNotificationsQuery,
@@ -819,5 +869,10 @@ export const {
   useToolWebhookMutation,
   useCreateEmptyChatMutation,
   useSendInviteToNonPlatformUserMutation,
-  useDuplicateChatIdMutation
+  useDuplicateChatIdMutation,
+  useGetPinnedToolsQuery,
+  usePinnedToolMutation,
+  useUnPinnedToolMutation,
+  useReOrderPinnedToolMutation,
+  useNewUserTrialActivateMutation,
 } = chatApi;

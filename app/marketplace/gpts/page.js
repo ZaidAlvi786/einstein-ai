@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import GptCard from "@/components/marketplace/GptCard";
 import BackIcon from "@/app/assets/svg/back-icon.svg";
 import NextIcon from "@/app/assets/svg/forward-icon.svg";
+import ToolsDetailsModal from "@/components/toolsDetailsComponents/toolsDetailModal";
 const GPTsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,6 +41,8 @@ const GPTsPage = () => {
   const tagsContainerRef = useRef(null); // Reference to the scrollable container
   const [hasMore, setHasMore] = useState(true);
   const observerRef = useRef(null);
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
   const [isLoading, setIsLoading] = useState(true); // show loader on tag click (added because showing no tools found for a few seconds)
   const {
     data: gptsData,
@@ -128,11 +131,9 @@ const GPTsPage = () => {
   );
 
   const navigateToolDetailsPage = (tool_id) => {
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
+   
   };
 
   const handleScroll = (direction) => {
@@ -498,7 +499,7 @@ const GPTsPage = () => {
                   {Array.from({ length: 6 }, (_, i) => i + 1).map((_, key) => (
                     <div key={key} className="col-span-4 ">
                       <Skeleton className="w-full rounded-[21.411px]">
-                        <section className="h-[210px]"></section>
+                        <section className="h-[125px]"></section>
                       </Skeleton>
                     </div>
                   ))}
@@ -537,6 +538,14 @@ const GPTsPage = () => {
           )}
         </div>
       </div>
+      {showtoolDetailModal && 
+            (
+              <ToolsDetailsModal
+                setShowtoolDetailModal={setShowtoolDetailModal}
+                showtoolDetailModal={showtoolDetailModal}
+                tool_id={tool_id}
+              />
+            )}
     </>
   );
 };
