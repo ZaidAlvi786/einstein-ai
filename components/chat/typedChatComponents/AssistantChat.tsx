@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AssistantAccessiblityFeatures } from "./AssistantAccessiblityFeatures";
 import { AssistantChatProps } from "@/types/ChatTypes";
 import { AssistantMessageVersionChangeComponent } from "./AssistantMessageVersionChangeComponent";
@@ -14,6 +14,8 @@ import { staticToolsList } from "@/components/constants/ToolContants";
 import ChatErrorMessage from "./ChatErrorMessage";
 import toast from "react-hot-toast";
 import DynamicToolSideChatModel from "./DynamicToolSideChatModel";
+import ReactMarkDown from "@/components/Markdown";
+import { useOnClickOutside } from "@/app/hooks/useOnClickOutside";
 
 const AssistantChat: React.FC<AssistantChatProps> = ({
   message,
@@ -25,6 +27,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
   showReply,
   file_url,
 }) => {
+  const containerRef:any = useRef()
   const [currentMessageVersionIndex, setCurrentMessageVersionIndex] =
     useState(0);
   const ws = useAppSelector((state: any) => state.webSocket.ws);
@@ -38,7 +41,9 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
     (state: any) => state.chat.activeChatModel
   );
   const searchParams: any = useSearchParams();
-  const chatHistoryID: any = searchParams?.get("chat") ?? null;
+  
+  // const chatHistoryID: any = searchParams?.get("chat") ?? null;
+  const { id: chatHistoryID } = useAppSelector((state: any) => state.chat.activeChat);
   const auth: any = useAuth();
 
   const activeGroup = useAppSelector(
@@ -88,13 +93,38 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
     }
   }, [message]);
 
-  const handleTextSelection = () => {
-    const selectedText = window.getSelection()?.toString();
+    const handleTextSelection = () => {
+    const selection :any= window.getSelection();
+    const selectedText :any= selection?.toString();
+  
     if (selectedText) {
-      setSelectedText(selectedText);
+      const range = selection.getRangeAt(0); // Save the selection range
+      setSelectedText(selectedText); // Update state with selected text
       setShowReply({ ...showReply, index: index });
+      // Restore the selection after re-render
+      setTimeout(() => {
+        const restoredSelection = window.getSelection();
+        if (restoredSelection) {
+          restoredSelection.removeAllRanges();
+          restoredSelection.addRange(range);
+        }
+      }, 0);
+    }else {
+      // No text selected (deselection case)
+      setSelectedText(""); // Clear selected text state
+      setShowReply({ ...showReply, index: null }); // Reset reply state
     }
   };
+
+  // useOnClickOutside(containerRef, () => {
+  //   const selection = window.getSelection();
+  //   if (containerRef.current) {
+  //     selection?.removeAllRanges();
+  //     setSelectedText("");
+  //     setShowReply({ ...showReply, index: null });
+  //   }
+  // });
+  
 
   const Regenerate = async () => {
     if (isViewPermission) {
@@ -126,7 +156,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
             ? activeChat?.workspace_id
             : workspace_id_local, // activeChat?.role in case of shared chat,
           group_id: activeGroup?._id ?? "",
-          id: chatHistoryID,
+          id: chatHistoryID || null,
           source: "modelToolsIcon",
           prompt: "",
           context_tool_id:
@@ -155,7 +185,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
         request: {
           type: message.type,
           index: index,
-          id: chatHistoryID,
+          id: chatHistoryID || null,
           userID: auth?.user?.userID,
           workspace_id: activeChat?.role
             ? activeChat?.workspace_id
@@ -181,7 +211,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
         endpoint: item.modelValue,
         request: {
           group_id: activeGroup?._id ?? "",
-          id: chatHistoryID,
+          id: chatHistoryID || null,
           index: index,
           source: "modelToolsIcon",
           tool_id: item.id,
@@ -217,7 +247,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
   };
 
   return (
-    <div className="response-text">
+    <div className="response-text" ref={containerRef}>
       <div className="mt-0 max-w-max rounded-[20px] pl-[10px] flex items-start gap-4">
         {/* <DynamicToolsSideChatPopup
           currentMessageVersionIndex={currentMessageVersionIndex}
@@ -236,7 +266,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
           onStaticToolModelClicked={onStaticToolModelClicked}
         />
         {chatError.index !== index && (
-          <span className="text-container relative">
+          <span className="text-container relative z-0">
             <div className="user-prompt relative">
               <div
                 className={`absolute top-[-31px] transition-opacity duration-1000 flex items-center gap-1`}
@@ -292,7 +322,7 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
                       />
                     </Tooltip>
                   )}
-                {!isViewPermission && (
+                 {!isViewPermission && (
                   <AddToGPTChat
                     selectedText={selectedText}
                     setSelectedText={setSelectedText}
@@ -303,19 +333,31 @@ const AssistantChat: React.FC<AssistantChatProps> = ({
               <div
                 className="text-[17px] text-[#E4E4E4] font-helvetica font-normal break-words leading-7"
                 style={{ whiteSpace: "pre-wrap" }}
-                onMouseUp={handleTextSelection}
+                // onMouseUp={handleTextSelection}
               >
-                {message.content[currentMessageVersionIndex]?.response &&
+                {/* {message.content[currentMessageVersionIndex]?.response &&
                   renderBoldText(
                     message.content[currentMessageVersionIndex]?.response
-                  )}
+                  )} */}
+                {message.content[currentMessageVersionIndex]?.response && (
+                  <ReactMarkDown
+                    data={
+                      message?.content?.[currentMessageVersionIndex]
+                        ?.response || ""
+                    }
+                    highlightedText={""}
+                    highlightedTextColor="yellow"
+                    handleTextSelection={handleTextSelection}
+                    openExportModel={false}
+                  />
+                )}
               </div>
             </div>
           </span>
         )}
-        {chatError.index === index && (
+        {/* {chatError.index === index && (
           <ChatErrorMessage chatError={chatError} Regenerate={Regenerate} />
-        )}
+        )} */}
       </div>
       {chatError.index !== index && (
         <div className="flex flex-row w-full pr-10 mt-4 ms-[60px]">

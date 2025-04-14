@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import MarketplaceCard from "@/components/marketplace/MarketplaceCard";
 import BackIcon from "@/app/assets/svg/back-icon.svg";
 import NextIcon from "@/app/assets/svg/forward-icon.svg";
+import ToolsDetailsModal from "@/components/toolsDetailsComponents/toolsDetailModal";
 const ModelsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,6 +41,8 @@ const ModelsPage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true); // show loader on tag click (added because showing no tools found for a few seconds)
   const observerRef = useRef(null);
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
   const {
     data: modelsData,
     isFetching: modelsLoading,
@@ -119,11 +122,8 @@ const ModelsPage = () => {
   );
 
   const navigateToolDetailsPage = (tool_id) => {
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
   };
 
   const handleScroll = (direction) => {
@@ -412,7 +412,7 @@ const ModelsPage = () => {
                   {Array.from({ length: 6 }, (_, i) => i + 1).map((_, key) => (
                     <div key={key} className="col-span-4 ">
                       <Skeleton className="w-full rounded-[21.411px]">
-                        <section className="h-[210px]"></section>
+                        <section className="h-[125px]"></section>
                       </Skeleton>
                     </div>
                   ))}
@@ -451,6 +451,14 @@ const ModelsPage = () => {
           )}
         </div>
       </div>
+      {showtoolDetailModal &&
+      (
+        <ToolsDetailsModal
+          setShowtoolDetailModal={setShowtoolDetailModal}
+          showtoolDetailModal={showtoolDetailModal}
+          tool_id={tool_id}
+        />
+      )}
     </>
   );
 };

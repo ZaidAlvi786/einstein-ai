@@ -181,7 +181,6 @@ const SortableItem = ({
   const [isConfirm, setIsConfirm] = useState(false);
   const [removeToolSubsId, setRemoveToolSubsId] = useState(null);
   const openCancelSubsModal = (model) => {
-    console.log("🚀  openCancelSubsModal  model:", model);
     setRemoveToolSubsId(model);
     setIsConfirm(true);
   };
@@ -203,7 +202,6 @@ const SortableItem = ({
   };
 
   const handlePinToToglBar = (model, way) => {
-    console.log("model: ", model);
     if ((way = "Pin to Toglbar")) {
       if (pinnedPlugins?.length >= MAX_PINNED_PLUGINS) {
         toast.error("Max limit of pinned plugins reached!");
@@ -282,6 +280,7 @@ const SortableItem = ({
             alt={model.modelName}
             showFallback={true}
             radius="sm"
+            draggable={false}
             className={`${
               model.category == "model" || model.category == "gpt"
                 ? "rounded-full"
@@ -409,7 +408,6 @@ const PluginMenu = ({ showDraggableModal, messages }) => {
   const [searchText, setSearchText] = useState("");
   // const [menuItems, setMenuItems] = useState([...menuItems1]);
   const [menuItems, setMenuItems] = useState([]);
-  console.log("menuItems: ", menuItems);
   const [menuOpen, setMenuOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [selectSearchTool, setSelectSearchTool] = useState(null);
@@ -470,7 +468,8 @@ const PluginMenu = ({ showDraggableModal, messages }) => {
   const [chatId, setChatId] = useState(null);
   const searchParams = useSearchParams();
   const chat_id = searchParams.get("chat");
-  const group_id = searchParams.get("group");
+  // const group_id = searchParams.get("group");
+  const group_id = JSON.parse(localStorage.getItem("group") || "{}")?._id;
   const workspace_id_local = localStorage.getItem("workspace_id");
 
   // Memoized filtered menu items based on search text
@@ -631,8 +630,6 @@ const PluginMenu = ({ showDraggableModal, messages }) => {
         (tool) => !pinnedPlugins.some((plugin) => plugin.id === tool.id)
       );
 
-      console.log("filteredSubscribedTools: ", filteredSubscribedTools);
-      console.log("pinnedPlugins: ", pinnedPlugins);
 
       // Update the menu items
       // setMenuItems((prev) => {
@@ -663,12 +660,9 @@ const PluginMenu = ({ showDraggableModal, messages }) => {
 
   // Set default active chat model if none is active
   useEffect(() => {
-    if (Object.keys(activeChatModel)?.length <= 0 && pinnedPlugins.length > 1) {
+    if(!activeChatModel?.id && pinnedPlugins?.length > 0){
       dispatch(setActiveChatModel(pinnedPlugins[0]));
-    } else if (
-      Object.keys(activeChatModel)?.length <= 0 &&
-      menuItems.length > 1
-    ) {
+    }else if(!activeChatModel?.id && menuItems?.length > 0){
       dispatch(setActiveChatModel(menuItems[0]));
     }
   }, [activeChatModel, menuItems, dispatch]);

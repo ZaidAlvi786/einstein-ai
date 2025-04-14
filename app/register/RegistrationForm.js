@@ -1,14 +1,14 @@
 // Registration Form Component
-"use client"
+"use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import passwordValidator from "password-validator";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { apiURL } from "@/config";
 import { useAuth } from "../authContext/auth";
-import { Button, Card, CardBody, CardHeader, Input } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, Spinner } from "@nextui-org/react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import UserIcon from "@/app/assets/svg/UserMake.svg";
 import LockIcon from "@/app/assets/svg/lock-key.svg";
@@ -37,13 +37,28 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
     email: "",
     password: "",
     confirmpassword: "",
+    checkbox: false,
   });
   const [submitted, setSubmitted] = useState(false); // Track form submission
+  const [isMobile, setIsMobile] = useState(false);
 
-  const { value: isPasswordVisible, toggle: togglePasswordVisibility } = useBoolean(false);
+  const { value: isPasswordVisible, toggle: togglePasswordVisibility } =
+    useBoolean(false);
 
-  const { value: isConfirmPasswordVisible, toggle: toggleConfirmPasswordVisibility } = useBoolean(false);
-
+  const {
+    value: isConfirmPasswordVisible,
+    toggle: toggleConfirmPasswordVisibility,
+  } = useBoolean(false);
+ useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const schema = new passwordValidator();
 
   // Add properties to it
@@ -85,7 +100,9 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
       toast.error("Password is required.");
       return false;
     } else if (!schema.validate(userData.password)) {
-      toast.error("Password must contain at least 8 characters including uppercase letters, lowercase letters, special characters, and digits. For example: MyP@ssw0rd, 123$Secure, StrongPass#99.");
+      toast.error(
+        "Password must contain at least 8 characters including uppercase letters, lowercase letters, special characters, and digits. For example: MyP@ssw0rd, 123$Secure, StrongPass#99."
+      );
       return false;
     }
     if (!userData.confirmpassword.trim()) {
@@ -95,38 +112,56 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
       toast.error("Passwords do not match");
       return false;
     }
+    if (!userData.checkbox) {
+      toast.error("Please agree to terms and conditions");
+      return false;
+    }
 
     return true;
   };
 
   const GetShareChatLink = (token) => {
-    const chatshare_chat_token = HandleLocalStorageState('share_chat_token', "", "get");
+    const chatshare_chat_token = HandleLocalStorageState(
+      "share_chat_token",
+      "",
+      "get"
+    );
     if (chatshare_chat_token) {
       const body = { token: chatshare_chat_token };
 
-      axios.post(`${apiURL}/auth/token`, body, { headers: { "Authorization": `Bearer ${token}` } })
+      axios
+        .post(`${apiURL}/auth/token`, body, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         .then((response) => {
-          HandleLocalStorageState('share_chat_token', "", "remove");
+          HandleLocalStorageState("share_chat_token", "", "remove");
         })
         .catch((err) => {
           console.log("####_error_#### ", err);
-        toast.error((err?.message ??  err?.data?.message) || "Something went wrong!")
-
-        })
+          toast.error(
+            (err?.message ?? err?.data?.message) || "Something went wrong!"
+          );
+        });
     }
   };
 
   const OnSuccessfullyRegistered = (token) => {
+    localStorage.setItem("showTutorialPopup", true);
     GetShareChatLink(token);
     localStorage.removeItem("workspace_name");
     localStorage.removeItem("workspace_id");
     localStorage.removeItem("group");
-
+    localStorage.removeItem("activeChatLocalStorage"); // removed prev activeChat during logout may be
     dispatch(setActiveChat({}));
     dispatch(setCurrentActiveGroup({}));
     dispatch(setActiveWorkspace({}));
-    dispatch(workspaceApi.util.invalidateTags(['workspace-list']));
-    dispatch(chatApi.util.invalidateTags(['group-list', 'history-chat-by-workspace-id']));
+    dispatch(workspaceApi.util.invalidateTags(["workspace-list"]));
+    dispatch(
+      chatApi.util.invalidateTags([
+        "group-list",
+        "history-chat-by-workspace-id",
+      ])
+    );
   };
 
   const SignUp = (userData) => {
@@ -145,9 +180,23 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
       .then((response) => {
         if (response.status === 200) {
           toast.success(response?.data?.message);
+          setSubmitted(false);
           setTimeout(() => {
             if (response.data.status) {
-              axios.post(`${apiURL}/auth/token`, { username: userData?.email ?? "", password: userData?.password ?? "" }, { headers: { "accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" } })
+              axios
+                .post(
+                  `${apiURL}/auth/token`,
+                  {
+                    username: userData?.email ?? "",
+                    password: userData?.password ?? "",
+                  },
+                  {
+                    headers: {
+                      accept: "application/json",
+                      "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                  }
+                )
                 .then((resp) => {
                   const token = resp?.data?.access_token;
                   auth.login({
@@ -155,12 +204,15 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
                     email: response.data.data.email,
                     token,
                     fullname: response.data.data.name,
-                    plan: response.data.data.plan ? response.data.data.plan : null,
+                    plan: response.data.data.plan
+                      ? response.data.data.plan
+                      : null,
                     price: response.data.data.price,
                     visitor_id: response.data.data.visitor_id,
                   });
                   OnSuccessfullyRegistered(token);
-                  window.location.href = "/";
+                  localStorage.setItem("signup_process", "true");
+                  window.location.href = "/subscription";
                   // router.push("/");
                   // setTimeout(() => {
                   //   window.location.reload(); // Reload only after redirect
@@ -168,8 +220,10 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
                 })
                 .catch((err) => {
                   console.error("Error get token :", err);
-        toast.error((err?.message ??  err?.data?.message) || "Something went wrong!")
-
+                  toast.error(
+                    (err?.message ?? err?.data?.message) ||
+                      "Something went wrong!"
+                  );
                 });
             }
           }, 2000); // 3000 milliseconds = 3 seconds
@@ -192,6 +246,8 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
           console.error("Error:", error?.message);
           toast.error("An error occurred: " + error?.message);
         }
+      }).finally(() => {
+        setSubmitted(false);
       });
   };
 
@@ -211,171 +267,202 @@ const RegistrationForm = ({ onClose, LoginWithGoogle }) => {
     }
   };
 
-  const [password1, setPassword1] = useState("");
-
   return (
-    <Card className="max-w-[421px] w-full shadow-modal bg-[#171717] rounded-[22px]">
-      <form onSubmit={handleSubmit}>
-        <CardHeader className="p-[19px]">
-          <div className="flex justify-between items-center w-full">
-            <div className="flex gap-1.5">
-              <Image
-                src="togl.svg"
-                width={25.9}
-                height={16.8}
-                alt="logo"
-              />
-              <p className="font-nasalization font-normal text-xl">Togl</p>
-            </div>
-            <XMarkIcon className="w-5 h-5 text-white cursor-pointer" onClick={onClose} />
-          </div>
-        </CardHeader>
-        <CardBody className="px-[18px]">
-          <div className="text-center">
-            <h1 className="font-semibold text-[43px] text-white capitalize font-helvetica">Create account</h1>
-            <p className="text-[11px] font-normal mt-0.5 capitalize font-helvetica">We Will never share your information with anyone.</p>
-          </div>
-          <div className="flex flex-col gap-[15px]">
-            <div className="flex flex-col mt-10">
-              <Input
+    <div className="flex h-screen w-full font-helvetica">
+      <div className={`${isMobile ? "w-full" : "w-1/2" } flex items-center justify-center bg-white p-8 relative`}>
+        <div className="fixed top-[30px] left-[20px]">
+          <Image src="togl-icon.png" width={70} height={70} alt="logo" />
+        </div>
+
+        <div className="w-full max-w-sm">
+          <form onSubmit={handleSubmit}>
+            <h1 className="text-4xl font-bold mb-2 text-[#232323] ">Sign up</h1>
+            <p className="text-gray-500 mb-6">
+              Sign up to enjoy the feature of Revolutie
+            </p>
+            <div class="relative my-4">
+              <input
                 type="text"
-                placeholder="Username"
-                name="fullname"
                 value={userData.fullname}
                 onChange={handleInputChange}
-                classNames={{
-                  input: [
-                    "placeholder:text-[#818181]",
-                    "placeholder:font-normal",
-                    "text-[16px]",
-                    "font-normal",
-                    "font-helvetica",
-                    "pl-[12px]"
-                  ],
-                  base:'bg-[#0D0D0D] rounded-[5px] py-1',
-                  inputWrapper: [
-                    "bg-[#0D0D0D]",
-                    "data-[hover=true]:bg-[#0D0D0D]",
-                    "group-data-[focus=true]:bg-[#0D0D0D]",
-                  ]
-                }}
-                startContent={
-                  <UserIcon className={`text-2xl pointer-events-none flex-shrink-0 ${formErrors.email ? "text-red-700" : "text-[#B0B0B0]"}`} />
-                }
+                id="floating_outlined_fullname"
+                name="fullname"
+                class="block px-2.5 pb-2.5 pt-4 w-full text-base text-gray-900 bg-transparent rounded-lg border-2 border-[#D9D9D9] appearance-none dark:text-white dark:border-[#367AFF] dark:focus:border-[#367AFF] focus:outline-none focus:ring-0 focus:border-[#367AFF] peer"
+                placeholder=" "
               />
+              <label
+                for="floating_outlined_fullname"
+                class="absolute font-medium text-base text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-[#367AFF] peer-focus:dark:text-[#367AFF] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
+              >
+                Your Name
+              </label>
             </div>
-            <div className="flex flex-col mt-0">
-              <Input
-                type="email"
-                placeholder="Email Address"
+            <div class="relative my-4">
+              <input
+                type="text"
                 name="email"
                 value={userData.email}
                 onChange={handleInputChange}
-                classNames={{
-                  input: [
-                    "placeholder:text-[#818181]",
-                    "placeholder:font-normal",
-                    "text-[16px]",
-                    "font-normal",
-                    "font-helvetica",
-                    "pl-[12px]"
-                  ],
-                  base:'bg-[#0D0D0D] rounded-[5px] py-1',
-                  inputWrapper: [
-                    'bg-[#0D0D0D]',
-                    "data-[hover=true]:bg-[#0D0D0D]",
-                    "group-data-[focus=true]:bg-[#0D0D0D]",
-                  ]
-                }}
-                startContent={
-                  <MailIcon className="text-2xl pointer-events-none flex-shrink-0 text-[#B0B0B0]" />
-                }
+                id="floating_outlined_email"
+                class="block px-2.5 pb-2.5 pt-4 w-full text-base text-gray-900 bg-transparent rounded-lg border-2 border-[#D9D9D9] appearance-none dark:text-white dark:border-[#367AFF] dark:focus:border-[#367AFF] focus:outline-none focus:ring-0 focus:border-[#367AFF] peer"
+                placeholder=" "
               />
+              <label
+                for="floating_outlined_email"
+                class="absolute font-medium text-base text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-[#367AFF] peer-focus:dark:text-[#367AFF] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
+              >
+                Email
+              </label>
             </div>
-            <div className="flex flex-col mt-0">
-              <Input
-                type={isPasswordVisible ? "text" : "password"}
-                placeholder="Password"
-                name="password"
+            <div class="relative my-4">
+              <input
                 value={userData.password}
-                onChange={(e) => {
-                  handleInputChange(e);
-                  setPassword1(e.target.value);
-                }}
-                classNames={{
-                  input: [
-                    "placeholder:text-[#818181]",
-                    "placeholder:font-normal",
-                    "text-[16px]",
-                    "font-normal",
-                    "font-helvetica",
-                    "pl-[12px]"
-                  ],
-                  base:'bg-[#0D0D0D] rounded-[5px] py-1',
-                  inputWrapper: [
-                    "bg-[#0D0D0D]",
-                    "data-[hover=true]:bg-[#0D0D0D]",
-                    "group-data-[focus=true]:bg-[#0D0D0D]",
-                  ]
-                }}
-                startContent={
-                  <LockIcon className="text-2xl pointer-events-none flex-shrink-0 text-[#B0B0B0]" />
-                }
-                endContent={
-                  isPasswordVisible ? <EyeSlashIcon className="h-4 w-4 cursor-pointer flex-shrink-0 text-[#B0B0B0]" onClick={togglePasswordVisibility} /> : <EyeIcon className="h-4 w-4 cursor-pointer flex-shrink-0 text-[#B0B0B0]" onClick={togglePasswordVisibility} />
-                }
+                onChange={handleInputChange}
+                name="password"
+                type={isPasswordVisible ? "text" : "password"}
+                id="floating_outlined_password"
+                class="block px-2.5 pb-2.5 pt-4 w-full text-base text-gray-900 bg-transparent rounded-lg border-2 border-[#D9D9D9] appearance-none dark:text-white dark:border-[#367AFF] dark:focus:border-[#367AFF] focus:outline-none focus:ring-0 focus:border-[#367AFF] peer"
+                placeholder=" "
               />
+              <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center">
+                {isPasswordVisible ? (
+                  <EyeSlashIcon
+                    className="h-6 w-6 cursor-pointer flex-shrink-0 text-[#9A9A9A]"
+                    onClick={togglePasswordVisibility}
+                  />
+                ) : (
+                  <EyeIcon
+                    className="h-6 w-6 cursor-pointer flex-shrink-0 text-[#9A9A9A]"
+                    onClick={togglePasswordVisibility}
+                  />
+                )}
+              </div>
+
+              <label
+                for="floating_outlined_password"
+                class="absolute font-medium text-base text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-[#367AFF] peer-focus:dark:text-[#367AFF] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
+              >
+                Password{" "}
+              </label>
             </div>
-            <div>
-              <Input
-                type={isConfirmPasswordVisible ? "text" : "password"}
-                name="confirmpassword"
+
+            <div class="relative my-4">
+              <input
                 value={userData.confirmpassword}
                 onChange={handleInputChange}
-                placeholder="Confirm Password"
-                classNames={{
-                  input: [
-                    "placeholder:text-[#818181]",
-                    "placeholder:font-normal",
-                    "text-[16px]",
-                    "font-normal",
-                    "font-helvetica",
-                    "pl-[12px]"
-                  ],
-                  base:'bg-[#0D0D0D] rounded-[5px] py-1',
-                  inputWrapper: [
-                    "bg-[#0D0D0D]",
-                    "data-[hover=true]:bg-[#0D0D0D]",
-                    "group-data-[focus=true]:bg-[#0D0D0D]",
-                  ]
-                }}
-                startContent={
-                  <LockIcon className="text-2xl pointer-events-none flex-shrink-0 text-[#B0B0B0]" />
-                }
-                endContent={
-                  isConfirmPasswordVisible ? <EyeSlashIcon className="h-4 w-4 cursor-pointer flex-shrink-0 text-[#B0B0B0]" onClick={toggleConfirmPasswordVisibility} /> : <EyeIcon className="h-4 w-4 cursor-pointer flex-shrink-0 text-[#B0B0B0]" onClick={toggleConfirmPasswordVisibility} />
-                }
+                name="confirmpassword"
+                type={isConfirmPasswordVisible ? "text" : "password"}
+                id="floating_outlined_confirm_password"
+                class="block px-2.5 pb-2.5 pt-4 w-full text-base text-gray-900 bg-transparent rounded-lg border-2 border-[#D9D9D9] appearance-none dark:text-white dark:border-[#367AFF] dark:focus:border-[#367AFF] focus:outline-none focus:ring-0 focus:border-[#367AFF] peer"
+                placeholder=" "
               />
+              <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center">
+                {isConfirmPasswordVisible ? (
+                  <EyeSlashIcon
+                    className="h-6 w-6 cursor-pointer flex-shrink-0 text-[#9A9A9A]"
+                    onClick={toggleConfirmPasswordVisibility}
+                  />
+                ) : (
+                  <EyeIcon
+                    className="h-6 w-6 cursor-pointer flex-shrink-0 text-[#9A9A9A]"
+                    onClick={toggleConfirmPasswordVisibility}
+                  />
+                )}
+              </div>
+
+              <label
+                for="floating_outlined_confirm_password"
+                class="absolute font-medium text-base text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-[#367AFF] peer-focus:dark:text-[#367AFF] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
+              >
+                Confirm Password{" "}
+              </label>
             </div>
+            <div className="flex justify-start pl-1 items-center my-4 gap-x-2">
+          <input
+    id="terms"
+    type="checkbox"
+    checked={userData.checkbox}
+    onChange={(e) =>
+      setUserData({ ...userData, checkbox: e.target.checked })
+    }
+    className="peer hidden"
+  />
+  <label
+    htmlFor="terms"
+    className={`
+      w-[17px] h-[17px] rounded-sm cursor-pointer flex items-center justify-center
+      border 
+      ${userData.checkbox ? 'bg-blue-500 border-blue-500' : 'bg-transparent border-gray-300'}
+    `}
+  >
+    {/* Optional checkmark (can be a ✓ or an SVG) */}
+    {userData.checkbox && (
+      <svg
+        className="w-3 h-3 text-white"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+    )}
+  </label>
+
+  <label htmlFor="terms" >
+  <p className="text-[#818181] font-helvetica select-none">
+              Agree to{" "}
+              <a className="cursor-pointer text-[#3BADFF]">terms & services </a>{" "}
+              & <a className="cursor-pointer text-[#3BADFF]">privacy policy</a>
+            </p>
+  </label>
           </div>
-          <div className="flex flex-col mt-[37px] font-helvetica">
-            <Button type="submit" className="bg-[#F8F8F8] text-[#131313] font-semibold text-base px-[50px] rounded-md w-[385px] h-[46px]">Create Account</Button>
+            <button
+              type="submit"
+              className="w-full bg-[#367AFF] text-white text-base py-2.5 rounded-lg font-semibold"
+            >
+              {submitted ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    "Sign up"
+                  )}
+              
+            </button>
+          </form>
+
+          <div className="flex items-center text-center text-black my-5">
+            <div className="flex-1 border-b-1.5 border-gray-300"></div>
+            <span className="mx-2 text-gray-500 text-base">or</span>
+            <div className="flex-1 border-b-1.5 border-gray-300"></div>
           </div>
-          <div className="flex items-center justify-center flex-col gap-2.5 mt-3">
-            <p className="text-sm font-normal capitalize font-helvetica">Already have an account <Link className="text-[#3BADFF]" href="/signin">Sign In</Link></p>
-            <Image
-              alt="google icon"
-              width={24}
-              height={24}
-              src="google.png"
-              className="cursor-pointer"
-              onClick={LoginWithGoogle}
+          <button
+            onClick={LoginWithGoogle}
+            className="w-full flex items-center text-base text-[#232323] border-[#E6E8E7] justify-center border-2 py-3 rounded-lg font-semibold"
+          >
+            Continue with Google
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              alt="Google"
+              className="w-4 h-4 ml-2"
             />
-          </div>
-        </CardBody>
-      </form>
-      <ToastService/>
-    </Card>
+          </button>
+          <p className="mt-4 text-center text-base  text-[#6C6C6C]">
+            Already have an account?{" "}
+            <Link href="/signin" className="text-[#367AFF] underline">
+              Sign in
+            </Link>
+          </p>
+         
+        </div>
+      </div>
+
+      <div
+        className={`${isMobile ? "hidden" : "w-1/2"} bg-cover bg-center`}
+        style={{
+          backgroundImage: "url(/svg/bg.svg)",
+        }}
+      ></div>
+    </div>
   );
 };
 export default RegistrationForm;

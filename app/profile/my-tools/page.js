@@ -10,6 +10,7 @@ import ToolsLikeComponents from "@/components/marketplace/ToolsLikesComponent";
 import ToolsUsersComponent from "@/components/marketplace/ToolsUsersComponent";
 import ToolsPriceComponent from "@/components/marketplace/ToolsPriceComponent";
 import ToolAddRemoveButton from "@/components/toolsDetailsComponents/toolAddRemove";
+import ToolsDetailsModal from "@/components/toolsDetailsComponents/toolsDetailModal";
 
 const TabTags = [
   { btnText: `Plugins`, category: "plugin" },
@@ -24,6 +25,8 @@ const MyTools = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
 
   // This query will re-run whenever `selectedCategory` changes
   const {
@@ -47,9 +50,8 @@ const MyTools = () => {
   );
 
   const navigateToolDetailsPage = (tool_id) => {
-    router.push(
-      "/marketplace/tools-details?" + createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
   };
 
   const handlePageChange = (newPage) => {
@@ -57,7 +59,15 @@ const MyTools = () => {
   };
 
   const filterTools = (tool) => {
-    setSelectedCategory(tool.category); // This will trigger the query to refetch
+    setSelectedCategory((prev) => {
+      const categoriesArray = prev ? prev?.split(",") : [];
+  
+      if (categoriesArray.includes(tool?.category)) {
+        return categoriesArray?.filter((category) => category !== tool?.category).join(",");
+      } else {
+        return [...categoriesArray, tool?.category].join(",");
+      }
+    });
   };
 
   return (
@@ -79,7 +89,7 @@ const MyTools = () => {
               key={index}
               className={`text-white helvetica-font font-bold w-auto !h-[34px] rounded-full border-[1px] bg-transparent 
               hover:bg-[#fff] hover:text-[#000] text-[14px] flex justify-center items-center leading-normal ${
-                selectedCategory === item.category
+                selectedCategory.includes(item.category)
                   ? "bg-[#fff] text-[#000]"
                   : ""
               }`}
@@ -164,6 +174,14 @@ const MyTools = () => {
           )}
         </div>
       </div>
+       {showtoolDetailModal && 
+                        (
+                          <ToolsDetailsModal
+                            setShowtoolDetailModal={setShowtoolDetailModal}
+                            showtoolDetailModal={showtoolDetailModal}
+                            tool_id={tool_id}
+                          />
+                        )}
     </div>
   );
 };

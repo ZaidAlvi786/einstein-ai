@@ -16,10 +16,17 @@ import SignInButton from "../ui/SignInButton";
 import EmailSignInForm from "../signin/EmailSignInForm";
 import toast from "react-hot-toast";
 import ToastService from "@/components/Toaster/toastService";
+import { setActiveChat } from "../lib/features/chat/chatSlice";
+import { setCurrentActiveGroup } from "../lib/features/chat/groupSlice";
+import { setActiveWorkspace } from "../lib/features/workspace/workspaceSlice";
+import { workspaceApi } from "../lib/features/workspace/workspaceApi";
+import { chatApi } from "../lib/features/chat/chatApi";
+import { useAppDispatch } from "../lib/hooks";
 // Main Component
 const SignInOptions = () => {
   const router = useRouter();
   const auth = useAuth();
+  const dispatch = useAppDispatch();
   const [showEmailSignIn, setShowEmailSignIn] = useState(false);
   const [showSignInOptions, setShowSignInOptions] = useState(true);
   const [user, setUser] = useState(null);
@@ -58,8 +65,8 @@ const SignInOptions = () => {
               }
               if (response.status === 200) {
                 console.log("response: ==>", response);
-                toast.success('Logged in successfully');
-                const token = response?.data?.token
+                toast.success("Logged in successfully");
+                const token = response?.data?.token;
                 auth.login({
                   userID: response?.data?.user_id,
                   email: response?.data?.email,
@@ -69,7 +76,12 @@ const SignInOptions = () => {
                   price: response?.data?.price,
                   visitor_id: response?.data?.visitor_id,
                 });
-                router.push("/");
+                OnLoginSuccess();
+                if (response?.data?.plan === "paid") {
+                  window.location.href = "/";
+                } else {
+                  window.location.href = "/subscription";
+                }
               }
             })
             .catch((error) => {
@@ -79,6 +91,23 @@ const SignInOptions = () => {
         .catch((err) => console.log(err));
     }
   }, [user]);
+  
+    const OnLoginSuccess = () => {
+      localStorage.removeItem("workspace_name");
+      localStorage.removeItem("workspace_id");
+      localStorage.removeItem("group");
+      localStorage.removeItem("activeChatLocalStorage"); // removed prev activeChat during logout may be
+      dispatch(setActiveChat({}));
+      dispatch(setCurrentActiveGroup({}));
+      dispatch(setActiveWorkspace({}));
+      dispatch(workspaceApi.util.invalidateTags(["workspace-list"]));
+      dispatch(
+        chatApi.util.invalidateTags([
+          "group-list",
+          "history-chat-by-workspace-id",
+        ])
+      );
+    };
 
   const toggleEmailSignIn = () => {
     setShowEmailSignIn((prev) => !prev);
@@ -121,7 +150,9 @@ const SignInOptions = () => {
             email: response?.data?.data?.email,
             token: response?.data?.data?.token,
             fullname: response?.data?.data?.name,
-            plan: response?.data?.data?.plan ? response?.data?.data?.plan : null,
+            plan: response?.data?.data?.plan
+              ? response?.data?.data?.plan
+              : null,
             price: response?.data?.data?.price,
             visitor_id: response?.data?.data?.visitor_id,
           });
@@ -176,7 +207,7 @@ const SignInOptions = () => {
   ];
 
   return (
-    <div className="h-screen overflow-auto bg-cover bg-[url('/background.png')] flex flex-col items-center justify-center">
+    <div>
       {" "}
       {/* {showSignInOptions && (
         <div className="flex items-center justify-center min-h-screen">

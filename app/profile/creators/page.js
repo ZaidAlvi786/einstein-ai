@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import MarketplaceCard from "@/components/marketplace/MarketplaceCard";
 import AddIcon from "@/app/assets/svg/add.svg";
+import ToolsDetailsModal from "@/components/toolsDetailsComponents/toolsDetailModal";
 const CreatorsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusBarData, setStatusBarData] = useState({});
   const router = useRouter();
   const searchParams = useSearchParams();
-
-
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
 
   const { data: toolList, isLoading,refetch } = useGetToolsPerformanceDetailsListQuery({
     page: currentPage,
@@ -59,11 +60,8 @@ const CreatorsPage = () => {
   );
 
   const navigateToolDetailsPage = (tool_id) => {
-    router.push(
-      "/marketplace/tools-details" +
-      "?" +
-      createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
   };
   return (
     <div className="max-w-[1095px] 4k:!w-[3250px] w-full mx-auto px-1.5 flex flex-col items-center lg:justify-normal min-[1800px]:justify-center pb-10">
@@ -216,6 +214,14 @@ const CreatorsPage = () => {
           <span className="text-[#FFF] 4k:!text-[28px] text-[12.406px] font-normal leading-[140%]">Press “Create” to add a tool to the marketplace</span>
         </div>
       )}
+      {showtoolDetailModal && 
+                  (
+                    <ToolsDetailsModal
+                      setShowtoolDetailModal={setShowtoolDetailModal}
+                      showtoolDetailModal={showtoolDetailModal}
+                      tool_id={tool_id}
+                    />
+                  )}
     </div>
   );
 };

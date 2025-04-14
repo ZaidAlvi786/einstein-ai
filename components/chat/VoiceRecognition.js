@@ -28,7 +28,12 @@ export const VoiceRecognition = ({ setValue, disabled, stopListening }) => {
 
   useEffect(() => {
     if (!transcript) return;
+    console.log('transcript: ', transcript);
     setValue(transcript);
+    // setValue((prevValue) => prevValue + transcript);
+    // if (editorRef.current) {
+    //   editorRef.current.innerHTML = transcript; 
+    // }
   }, [transcript]);
 
   const handleVoiceIconClick = () => {

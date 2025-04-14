@@ -65,7 +65,7 @@ const Layout = ({ children }) => {
               >
                 <ChevronLeftIcon className='w-5 h-5 text-[#D2D2D2]' />
                 <p className='text-white font-normal text-[13px] font-inter'>
-                  Back to chat
+                  Back To Chat
                 </p>
               </div>
             </NavbarBrand>

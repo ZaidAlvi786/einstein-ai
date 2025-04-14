@@ -464,7 +464,12 @@ const ToolsDetailsPage = () => {
                   loop={true}
                   spaceBetween={10}
                   navigation={false}
-                  thumbs={{ swiper: thumbsSwiper }}
+                  thumbs={{
+                    swiper:
+                      thumbsSwiper && !thumbsSwiper.destroyed
+                        ? thumbsSwiper
+                        : null,
+                  }}
                   modules={[FreeMode, Navigation, Thumbs]}
                   className="mySwiper2 h-[300px] xl:h-[300px] min-[1700px]:h-[445px] rounded-lg mb-5"
                 >
@@ -863,9 +868,7 @@ const ToolsDetailsPage = () => {
                   </div>
                   <p className="text-sm text-white mt-5 mb-2 font-helvetica">
                     Last Updated{" "}
-                    {moment(
-                      getToolDetailsGuestData?.tool?.updated_at
-                    ).fromNow()}
+                    {moment.utc(getToolDetailsGuestData?.tool?.updated_at).local().fromNow()}
                   </p>
                   <div className="flex items-center text-center gap-3">
                     <p className="text-sm text-white font-helvetica">
@@ -945,6 +948,7 @@ import {
 import toast from "react-hot-toast";
 import AddToolsDropdown from "@/components/marketplace/Tools/AddToolsDropdown";
 import CreateToolsModel from "@/components/marketplace/AddToolModel";
+import CancelSubscriptionModal from "@/components/chat/typedChatComponents/CancelSubscriptionModal";
 
 const classNames = {
   //   header: ["2xl:py-8", "2xl:px-[65px]", "xl:py-[22px]", "xl:px-[30px]"],
@@ -952,151 +956,6 @@ const classNames = {
   footer: ["p-0", "my-[25px] py-0"],
 };
 
-const CancelSubscriptionModal = ({
-  isOpenCancelSubsModal,
-  setisOpenCancelSubsModal,
-  tool_id,
-}) => {
-  const router = useRouter();
-  const [UpdateTool] = useUpdateToolMutation();
-  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
-  const [menuItems, setMenuItems] = useState([]);
-  const [pinnedPlugins, setpinnedPlugins] = useState([]);
-
-  
-
-  useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("menuItemsOrder") || "[]");
-    setMenuItems(items);
-    const items2 = JSON.parse(localStorage.getItem("pinnedItemsOrder") || "[]");
-    setpinnedPlugins(items2);
-  }, []);
-
-  const toggleConfirm = () => {
-    setisOpenCancelSubsModal(false);
-  };
-
-  const deleteConfirm = () => {
-    if (!isCheckboxChecked) {
-      toast.error("Please check 'I Understand' to proceed with deletion.");
-      return;
-    }
-    UpdateTool({ tool_id: tool_id, is_deleted: true })
-      .unwrap()
-      .then((response) => {
-        toast.success("Tool deleted successfully");
-        setisOpenCancelSubsModal(false);
-        // router.push("/profile/creators");
-        window.location.href = "/profile/creators";
-        const removeFromTogleBox = menuItems.filter(
-          (item) => item.id !== tool_id
-        );
-        const removeFromTogleBar = pinnedPlugins.filter(
-          (item) => item.id !== tool_id
-        );
-        localStorage.setItem(
-          "menuItemsOrder",
-          JSON.stringify([...removeFromTogleBox])
-        );
-        localStorage.setItem(
-          "pinnedItemsOrder",
-          JSON.stringify([...removeFromTogleBar])
-        );
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      })
-      .catch((error) => {
-        toast.error(error?.data?.message);
-        console.log("###_error_### ", error);
-      });
-  };
-  return (
-    <Modal
-      isOpen={isOpenCancelSubsModal}
-      onOpenChange={toggleConfirm}
-      //   setIsConfirm={setIsConfirm}
-      size={"md"}
-      classNames={classNames}
-      className="bg-[#171717]"
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <div className="text-center">
-              <ModalHeader className="text-white helvetica-font  flex justify-center pt-3 pl-3 pr-3 !pb-2">
-                <div className="flex flex-col p-0">
-                  <div className="flex justify-center p-4">
-                    <BillingCanc />
-                  </div>
-                  <div className="text-xl font-normal">
-                    Are you sure you want to delete?
-                  </div>
-                </div>
-              </ModalHeader>
-            </div>
-            <ModalBody className="px-[28px] py-[0px] text-white ">
-              <div className="max-w-xs mx-auto text-[13px] font-normal px-3.5">
-                <div>Clicking “Delete” will </div>
-                <div
-                  className={`list-disc ml-4 text-[14px] font-normal  
-     `}
-                  style={{ overflow: "hidden" }}
-                >
-                  <ul className="list-disc text-start ml-4">
-                    <li>
-                      Schedule the app to be deleted at the end of this pay
-                      period.
-                    </li>
-                    <li>Remove the app from the marketplace.</li>
-                    <li>Halt any new subscriptions.</li>
-                  </ul>
-                </div>
-                <div className="my-1">
-                  Note: Per the Creator Agreement app creators must maintain
-                  functionality until end of pay period. Failure to do so will
-                  result in refund request.
-                </div>
-                <Checkbox
-                  onChange={() => setIsCheckboxChecked(!isCheckboxChecked)}
-                  checked={isCheckboxChecked}
-                  className="custom-checkbox text-white text-[10px]"
-                >
-                  I Understand
-                </Checkbox>
-              </div>
-            </ModalBody>
-
-            <ModalFooter className="w-[300px] mx-auto flex flex-col ">
-              <div className="flex flex-col gap-2">
-                <Button
-                  className="bg-[#533938] hover:bg-[#EE4142] rounded-[15px] hover:text-white font-normal h-[36px] text-sm "
-                  color="primary"
-                  onClick={deleteConfirm}
-                >
-                  Delete
-                </Button>
-
-                <Button
-                  className="bg-[#343539] hover:bg-[#535353] rounded-[15px] hover:text-white font-normal h-[36px] text-sm "
-                  onClick={toggleConfirm}
-                >
-                  Decline
-                </Button>
-              </div>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
-  );
-};
-
-// const classNames = {
-//   //   header: ["2xl:py-8", "2xl:px-[65px]", "xl:py-[22px]", "xl:px-[30px]"],
-//   header: ["2xl:py-5", "2xl:px-[65px]", "xl:py-[10px]", "xl:px-[30px]"],
-//   footer: ["p-0", "my-[25px] py-0"],
-// };
 
 const ReportModal = ({ setisOpenReportModal, isOpenReportModal, tool_id }) => {
   const [ReportTool] = useReportToolMutation();

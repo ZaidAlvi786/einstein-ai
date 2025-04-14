@@ -71,15 +71,15 @@ const enterpriseFeatures = [
 
 const Plans = [
   {
-    plan_name: "Free",
-    title_text: "There are currently no running promotions",
+    plan_name: "Togl Pro",
+    title_text: "Try TOGL For Free",
     limited_time_only: false,
     bullet_points: freeFeatureLists,
     button_text: "Applied",
   },
   {
-    plan_name: "Pro",
-    title_text: "20% Off Annual Plan",
+    plan_name: "Early Bird",
+    title_text: "Limited Spots Available",
     limited_time_only: true,
     bullet_points: ultraFeatureList,
     button_text: "Subscribe",
@@ -94,36 +94,41 @@ const Plans = [
 ];
 const PlatformPlans = [
   {
-    id: "66fd0e52502dbc3c43998687",
-    plan_name: "Free",
-    price: 0,
-    plan_description:
-      "Our basic plan for new users. Try out Togl with free credits on us.",
-    features: [
-      "$1 single-use credits total",
-      "6 Pinned Chats",
-      "2 GPT’s",
-      "5 Workspaces",
-      "1 shared workspace/chat",
-    ],
-    buttonText: "Active",
-    buttonDisabled: true,
-    title_text: "There are currently no running promotions",
-  },
-  {
     id: "66fd0e52502dbc3c43998688",
-    plan_name: "Pro",
-    monthly_price: 12,
-    monthly_price_lumsum: 9,
-    yearly_price: 108,
-    plan_description:
-      "Experience the full power of Togl - the largest library of AI tools at your fingertips.",
+    plan_name: "Togl Pro",
+    price: 20,
+    plan_type: "monthly",
+    plan_description: "Access TOGL for free, complimentary credits on us.",
     features: [
-      "Unlimited GPT’s",
+      "Unlimited GPTs",
       "Unlimited Pinned Chats",
       "Unlimited Workspaces",
       "Unlimited Shared Workspaces & Chats",
-      "2$ of Single-use Credits per month incl.",
+      "$5 of Monthly Credits",
+    ],
+    buttonText: "Active",
+    buttonDisabled: false,
+    title_text: "Try TOGL For Free",
+  },
+  {
+    id: "66fd0e52502dbc3c43998688",
+    plan_name: "Early Bird",
+    monthly_price: 20,
+    monthly_price_lumsum: 12,
+    yearly_price: 144,
+    plan_type:"yearly",
+    plan_description:
+      "Support Togl and lock in a lifetime discount!",
+    features: [
+      "Unlimited GPTs",
+      "Unlimited Pinned Chats",
+      "Unlimited Workspaces",
+      "Unlimited Shared Workspaces & Chats",
+      "$5 of Monthly Credits",
+      "Private Founder's Circle",
+      "Exclusive Early Feature Access",
+      "Priority Support",
+      "Exclusive Credit Discounts"
     ],
     buttonText: "Continue",
     buttonDisabled: false,
@@ -231,7 +236,7 @@ const BuySubscription = () => {
   const [isAnnualBilling, setIsAnnualBilling] = useState(true);
   const [isAutoCredit, setIsAutoCredit] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isLoading, setisLoading] = useState({ plan_id: null });
+  const [isLoading, setisLoading] = useState({ plan_id: null,plan_type:null });
   const [SubscribeToPlatformPlan] = useSubscribeToPlatformPlanMutation();
   const [setAutoTopupStatus] = useSetAutoTopupStatusMutation();
   const [updateAutoTopupStatus] = useUpdateAutoTopupStatusMutation();
@@ -581,7 +586,7 @@ const BuySubscription = () => {
     const user_id = auth?.user?.userID;
     const plan_id = plan?.id;
 
-    setisLoading({ plan_id: plan?.id });
+    setisLoading({ plan_id: plan?.id,plan_type:plan?.plan_type });
 
     const data1 = {
       params: {
@@ -595,10 +600,17 @@ const BuySubscription = () => {
       .then((response) => {
         navigateToBillingPage();
         toast.success("Plan Purchased Successfully!");
-        setisLoading({ plan_id: null });
+        setisLoading({ plan_id: null,plan_type:null });
+        if (plan?.plan_name === "Early Bird") {
+          const data = {
+            status: true,
+            amount: 5,
+          };
+          handleTopUpStatus(data);
+        }
       })
       .catch((error) => {
-        setisLoading({ plan_id: null });
+        setisLoading({ plan_id: null,plan_type:null });
         if (error?.data?.message) {
           toast.error(error?.data?.message);
         }
@@ -634,8 +646,16 @@ const BuySubscription = () => {
   };
   useEffect(() => {}, [selectedPlan]);
 
+  const isPlanActive = (plan) => {
+    return getUserSubscribedPlan?.data?.some(
+      (p) =>
+        p?.plan_id === plan?.id &&
+        p?.recurrence?.toLowerCase() === plan?.plan_type?.toLowerCase()
+    );
+  };
+
   return (
-    <div className='max-w-[1150px] w-full mx-auto px-6  flex flex-col lg:justify-normal min-[1800px]:justify-center pb-5 lg:mt-[10px]'>
+    <div className="max-w-[1150px] w-full mx-auto px-6  flex flex-col lg:justify-normal min-[1800px]:justify-center pb-5 lg:mt-[10px]">
       <CancelSubscriptionModal
         isOpenCancelSubsModal={isOpenCancelSubsModal}
         setisOpenCancelSubsModal={(v) => setisOpenCancelSubsModal(v)}
@@ -654,11 +674,11 @@ const BuySubscription = () => {
         isMutationLoading={isMutationLoading}
       />
 
-      <div className='pt-8'>
-        <h2 className='text-[36px] text-white font-normal helvetica-font mb-5'>
+      <div className="pt-8">
+        <h2 className="text-[36px] text-white font-normal helvetica-font mb-5">
           Upgrade Your Togl Account
         </h2>
-        <div className='2xl:mb-15 xl:mb-8 flex items-center gap-2'>
+        <div className="2xl:mb-15 xl:mb-8 flex items-center gap-2">
           {/* <NextSwitch
             // checked={isAutoCredit}
             isSelected={isAnnualBilling}
@@ -670,30 +690,30 @@ const BuySubscription = () => {
             isSelected={isAnnualBilling}
             onValueChange={(state) => setIsAnnualBilling(state)}
           />
-          <div className='text-white text-[14px]'>Annual Billing On</div>
-          <div className='text-white text-[14px]'>
-            {isAnnualBilling ? "$9/mo totaling $108" : "$12/mo"}
+          <div className="text-white text-[14px]">Annual Billing On</div>
+          <div className="text-white text-[14px]">
+            {isAnnualBilling ? "$12/mo totaling $144" : "$20/mo"}
           </div>
         </div>
       </div>
-      <div className='flex items-center justify-center gap-8'>
+      <div className="flex items-center justify-center gap-8">
         {PlatformPlans?.map((platformPlan, key) => (
           <div
             onClick={() => setSelectedPlan(platformPlan)}
             key={key}
             className='className="max-w-[385px] w-full shadow-[-3px_3px_8px_0px_#0000001A]  group cursor-pointer transition-all mb-5 relative'
           >
-            {platformPlan?.plan_name === "Pro" && (
-              <div className='absolute top-[-40px] flex gap-[5px] items-center'>
-                <StarIcon className='text-white' />
-                <p className='text-white helvetica-font font-bold text-[14px]'>
+            {platformPlan?.plan_name === "Early Bird" && (
+              <div className="absolute top-[-40px] flex gap-[5px] items-center">
+                <StarIcon className="text-white" />
+                <p className="text-white helvetica-font font-bold text-[14px]">
                   Recommended
                 </p>
               </div>
             )}
             <Card
               className={`bg-card-gradient rounded-3xl h-[547px] ${
-                platformPlan?.id === selectedPlan?.id
+                (platformPlan?.id === selectedPlan?.id && platformPlan?.plan_type === selectedPlan?.plan_type)
                   ? "border-[#5E91FF] border-[1px] border-solid"
                   : ""
               }`}
@@ -709,7 +729,7 @@ const BuySubscription = () => {
                         ""
                       }
                     ${
-                      platformPlan?.id === selectedPlan?.id
+                      (platformPlan?.id === selectedPlan?.id && platformPlan?.plan_type === selectedPlan?.plan_type)
                         ? "bg-[#5E91FF]"
                         : "bg-[#393838]"
                     }
@@ -725,13 +745,13 @@ const BuySubscription = () => {
                       // getUserSubscribedPlan?.data?.some(
                       //   (p) => p?.plan_id === platformPlan?.id
                       // )
-                      platformPlan?.id === selectedPlan?.id
+                      (platformPlan?.id === selectedPlan?.id && platformPlan?.plan_type === selectedPlan?.plan_type)
                         ? "text-white"
                         : "text-[#A4A4A4]"
                     } group-hover:text-white mt-1`}
                   />
                 </div>
-                <div className='p-1'>
+                <div className="p-1">
                   <p
                     className={`helvetica-font text-sm group-hover:text-white font-inter group-hover:text-sm ${
                       platformPlan?.limited_time_only ||
@@ -751,16 +771,16 @@ const BuySubscription = () => {
                   {Plans.find(
                     (plan) => plan.plan_name === platformPlan?.plan_name
                   )?.limited_time_only && (
-                    <p className='text-sm font-normal font-inter text-white'>
-                      *Limited time only
+                    <p className="text-sm font-normal font-inter text-white">
+                      Only 3 Left - Act Quickly
                     </p>
                   )}
                 </div>
               </CardHeader>
-              <CardBody className='px-7 py-2'>
-                <div className='flex justify-between pt-2 pb-7'>
+              <CardBody className="px-7 py-2">
+                <div className="flex justify-between pt-2 pb-7">
                   <h1
-                    className={`2xl:text-[40px] xl:text-[27px] text-white helvetica-font ${
+                    className={`2xl:text-[40px] xl:text-[27px] text-white helvetica-font  ${
                       platformPlan?.limited_time_only
                         ? "font-medium"
                         : "font-light"
@@ -768,8 +788,8 @@ const BuySubscription = () => {
                   >
                     {platformPlan?.plan_name ?? "-"}
                   </h1>
-                  <div className="flex flex-col justify-start items-end lg:min-h-[56.7px]">
-                    {platformPlan?.plan_name === "Pro" && isAnnualBilling ? (
+                  <div className="flex flex-col justify-start items-end lg:min-h-[56.7px] w-[152px]">
+                    {platformPlan?.plan_name === "Early Bird" && isAnnualBilling ? (
                       <span className="2xl:text-[34px] xl:text-[27px] text-white helvetica-font font-light">
                         $
                         {PlatformPlans?.find(
@@ -796,7 +816,7 @@ const BuySubscription = () => {
                           </p>
                         ) : (
                           <p className="2xl:text-[34px] xl:text-[27px] text-white helvetica-font font-light">
-                            $0/mo
+                            ${platformPlan.price}/mo
                           </p>
                         )
                       ) : platformPlan.plan_name === "Free" ? (
@@ -805,7 +825,7 @@ const BuySubscription = () => {
                         </p>
                       ) : (
                         <p className="2xl:text-[34px] xl:text-[27px] text-white helvetica-font font-light">
-                          $12/mo
+                          ${platformPlan.plan_name === 'Early Bird' ? platformPlan.monthly_price: platformPlan.price}/mo
                         </p>
                       )
                     ) : (
@@ -813,135 +833,122 @@ const BuySubscription = () => {
                     )}
                   </div>
                 </div>
-                <p className='text-[16px] h-[100px] text-white helvetica-font font-normal pb-[34px]'>
+                <p className="text-[16px] h-[100px] text-white helvetica-font font-normal pb-[34px]">
                   {PlatformPlans?.find(
                     (p) => p?.plan_name === platformPlan?.plan_name
                   )?.plan_description ?? "-"}
                 </p>
-                <ul className='2xl:ml-[46px] xl:ml-8'>
+                <ul className="2xl:ml-[46px] xl:ml-8">
                   {platformPlan?.features?.map((feature, index) => (
                     <li
                       key={index}
-                      className='list-disc list-item ps-0 pb-0 helvetica-font text-[15px] font-normal mb-2'
+                      className="list-disc list-item ps-0 pb-0 helvetica-font text-[15px] font-normal mb-2"
                     >
                       {feature}
                     </li>
                   ))}
                 </ul>
               </CardBody>
-              <CardFooter className='pe-5 pb-5'>
-                {getUserSubscribedPlan?.data?.some(
-                  (p) => p?.plan_id === platformPlan?.id
-                ) ? (
-                  <Button
-                    // className={`bg-transparent rounded-2xl w-full 2xl:text-[18px] xl:text-base font-bold helvetica-font bg-[#E54637] text-black group-hover:disabled:bg-[#3A3A3A] group-hover:disabled:text-[#959595] disabled:bg-[#3A3A3A] disabled:text-[#959595] tracking-widest`}
-                    className={`bg-transparent rounded-2xl w-full 2xl:text-[18px] xl:text-base font-bold helvetica-font ${
-                      getUserSubscribedPlan?.data?.some(
-                        (p) => p?.plan_id === platformPlan?.id
-                      )
-                        ? "bg-[#3A3A3A] text-[#959595]"
-                        : "bg-[#E4E4E4] text-black"
-                    }  group-hover:disabled:bg-[#3A3A3A] group-hover:disabled:text-[#959595] disabled:bg-[#3A3A3A] disabled:text-[#959595] tracking-widest`}
-                    onClick={() =>
-                      openCancelSubsModal(
-                        PlatformPlans?.find(
-                          (p) => p.plan_name === platformPlan?.plan_name
-                        )
-                      )
-                    }
-                    onMouseEnter={() => setHoverText("Cancel")}
-                    onMouseLeave={() => setHoverText("")}
-                  >
-                    {hoverText == "" ? "Active" : hoverText}
-                  </Button>
-                ) : (
-                  <Button
-                    className={`bg-transparent rounded-2xl w-full 2xl:text-[18px] xl:text-base font-bold helvetica-font bg-[#E4E4E4]  text-black group-hover:disabled:bg-[#3A3A3A] group-hover:disabled:text-[#959595] disabled:bg-[#3A3A3A] disabled:text-[#959595] tracking-widest`}
-                    disabled={isLoading?.plan_id === platformPlan?.id}
-                    onClick={() => {
-                      if (cardsList?.payment_methods.length > 0) {
-                        setSelectedPlan(platformPlan);
-                        setShowSubscribeModal(true);
-                        // subscriptionPlans(
-                        //   PlatformPlans?.find(
-                        //     (p) => p.plan_name === platformPlan?.plan_name
-                        //   )
-                        // );
-                      } else {
-                        setOpenCardModal((prev) => ({ ...prev, open: true }));
-                      }
-                    }}
-                  >
-                    {isLoading?.plan_id === platformPlan?.id ? (
-                      <Spinner size='sm' color='white' />
-                    ) : getUserSubscribedPlan?.data?.some(
-                        (p) => p?.plan_id === platformPlan?.id
-                      ) ? (
-                      "Cancel"
-                    ) : platformPlan.plan_name === "Enterprise" ? (
-                      "Contact"
-                    ) : (
-                      "Subscribe"
-                    )}
-                  </Button>
-                )}
-              </CardFooter>
+              <CardFooter className="pe-5 pb-5">
+  {isPlanActive(platformPlan) ? (
+    <Button
+      className={`bg-transparent rounded-2xl w-full 2xl:text-[18px] xl:text-base font-bold helvetica-font ${
+        isPlanActive(platformPlan)
+          ? "bg-[#3A3A3A] text-[#959595]"
+          : "bg-[#E4E4E4] text-black"
+      } group-hover:disabled:bg-[#3A3A3A] group-hover:disabled:text-[#959595] disabled:bg-[#3A3A3A] disabled:text-[#959595] tracking-widest`}
+      onClick={() =>
+        openCancelSubsModal(
+          PlatformPlans?.find(
+            (p) => p.plan_name === platformPlan?.plan_name
+          )
+        )
+      }
+      onMouseEnter={() => setHoverText("Cancel")}
+      onMouseLeave={() => setHoverText("")}
+    >
+      {hoverText === "" ? "Active" : hoverText}
+    </Button>
+  ) : (
+    <Button
+      className="bg-transparent rounded-2xl w-full 2xl:text-[18px] xl:text-base font-bold helvetica-font bg-[#E4E4E4] text-black group-hover:disabled:bg-[#3A3A3A] group-hover:disabled:text-[#959595] disabled:bg-[#3A3A3A] disabled:text-[#959595] tracking-widest"
+      disabled={(isLoading?.plan_id === platformPlan?.id && isLoading?.plan_type === platformPlan?.plan_type)}
+      onClick={() => {
+        if (cardsList?.payment_methods.length > 0) {
+          setSelectedPlan(platformPlan);
+          setShowSubscribeModal(true);
+        } else {
+          setOpenCardModal((prev) => ({ ...prev, open: true }));
+        }
+      }}
+    >
+      {(isLoading?.plan_id === platformPlan?.id && isLoading?.plan_type === platformPlan?.plan_type) ? (
+      <Spinner size="sm" color="white" />
+      ) : platformPlan.plan_name === "Enterprise" ? (
+        "Contact"
+      ) : (
+        "Subscribe"
+      )}
+    </Button>
+  )}
+</CardFooter>
+
             </Card>
           </div>
         ))}
       </div>
 
       {isQueryLoading ? (
-        <Skeleton className='w-full  rounded-3xl mb-4'>
-          <div className='h-[187px] w-full '></div>
+        <Skeleton className="w-full  rounded-3xl mb-4">
+          <div className="h-[187px] w-full "></div>
         </Skeleton>
       ) : (
-        <div className='pb-8 mt-4'>
+        <div className="pb-8 mt-4">
           <div
             style={{
               background:
                 "linear-gradient(155.14deg, #242424 -2.13%, #1B1B1B 136.58%)",
             }}
-            className='px-6 rounded-[24px] mb-5 py-3'
+            className="px-6 rounded-[24px] mb-5 py-3"
           >
             {isQueryLoading ? (
-              <Skeleton className='w-[20px]  rounded-3xl mb-4'>
-                <div className='h-[20px] '></div>
+              <Skeleton className="w-[20px]  rounded-3xl mb-4">
+                <div className="h-[20px] "></div>
               </Skeleton>
             ) : isAutoCredit ? (
-              <div className='text-[green] text-end mt-3 ml-5 '>Active</div>
+              <div className="text-[green] text-end mt-3 ml-5 ">Active</div>
             ) : (
-              <div className='text-[#FF3C3C] text-end mt-3 ml-5 '>
+              <div className="text-[#FF3C3C] text-end mt-3 ml-5 ">
                 Not Active
               </div>
             )}
 
-            <div className='mt-[-25px] flex flex-wrap justify-center md:justify-center items-center'>
+            <div className="mt-[-25px] flex flex-wrap justify-center md:justify-center items-center">
               <div>
-                <div className='flex items-center gap-4'>
-                  <h2 className='text-[40px] text-white font-[500] helvetica-font'>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-[40px] text-white font-[500] helvetica-font">
                     Auto Credit Top-Ups
                   </h2>
-                  <div className='flex gap-2 '>
+                  <div className="flex gap-2 ">
                     <Switch
                       // checked={isAutoCredit}
                       value={isAutoCredit}
                       onChange={(e) => handleToggleOn(e)}
-                      size='sm'
+                      size="sm"
                     />
                   </div>
                 </div>
                 <div>
-                  <p className='text-[16px] text-white helvetica-font font-normal pb-[20px] mt-6'>
+                  <p className="text-[16px] text-white helvetica-font font-normal pb-[20px] mt-6">
                     Some tools charge per individual use - keep your workflow
                     <br />
                     uninterrupted with automatic credit top-ups.
                   </p>
                 </div>
               </div>
-              <div className='text-white w-[100%] md:w-[50%] flex justify-center items-center flex-col'>
+              <div className="text-white w-[100%] md:w-[50%] flex justify-center items-center flex-col">
                 <div>When credits drop below $1.00 add:</div>
-                <div className='mt-3 flex justify-around gap-3'>
+                <div className="mt-3 flex justify-around gap-3">
                   <div
                     className={` ${
                       autoCreditAmount === 3
@@ -980,7 +987,7 @@ const BuySubscription = () => {
                   </div>
                 </div>
                 {showAutoCreditErr && !autoCreditAmount && (
-                  <div className='text-[red] text-base mt-2'>
+                  <div className="text-[red] text-base mt-2">
                     Select Auto Credit Amount
                   </div>
                 )}
@@ -990,7 +997,7 @@ const BuySubscription = () => {
         </div>
       )}
       <ToastService />
-      <AddCardFormModal   
+      <AddCardFormModal
         OpenCardModal={OpenCardModal}
         setOpenCardModal={setOpenCardModal}
         afterSubscribe={true}

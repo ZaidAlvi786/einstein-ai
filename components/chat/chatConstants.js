@@ -136,3 +136,22 @@ export const staticTools = [
     modelValue: "claude",
   },
 ];
+
+export const imageTypeSupport = ["png", "jpeg", "gif", "webp"];
+export const fileTypeSupport = ["txt", "pdf", 'docx', 'doc', 'csv', 'xlsx'];
+export const audioTypeSupport = ["mp3", "mpeg", "wav"];
+
+
+export const animationViewType = [
+  {
+    modelName: "DALL·E 2",
+    responseType: "image",
+    text:"Generating Image: Create realistic and artistic visuals based on prompts."
+  },
+  {
+    modelName: "LyricsGen",
+    responseType: "audio",
+    text:"Generating audio: Create realistic and Generating high-quality audio, making content more accessible and interactive."
+  },
+  
+];
