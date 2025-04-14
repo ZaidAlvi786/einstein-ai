@@ -17,6 +17,7 @@ import {
   useAddToolModelGptMutation,
   useGetCreatorsGptQuery,
   useGetRandomImageriesQuery,
+  useGetRandomLogoImageriesQuery,
 } from "@/app/lib/features/chat/chatApi";
 import toast from "react-hot-toast";
 import AddGptModel from "@/components/marketplace/AddGptModel";
@@ -29,6 +30,7 @@ import { useAuth } from "@/app/authContext/auth";
 import { apiURL } from "@/config";
 import axios from "axios";
 import { useAppSelector } from "@/app/lib/hooks";
+import CancelSubscriptionModal from "./CancelSubscriptionModal";
 
 interface AddToGptChatProps {
   selectedText: string;
@@ -42,7 +44,6 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
   showGogleIcon,
 }) => {
   const auth: any = useAuth();
-  console.log('auth: ', auth);
   const { data: gptsList } = useGetCreatorsGptQuery(undefined);
   const [addContextToGpt] = useAddContextToGptMutation();
   const [addToolModelGpt, setAddToolModelGpt] = useState({
@@ -53,11 +54,15 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
     open: false,
     isEditable: true,
     tool_details: null,
-    category: ''
+    category: "",
   });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const workspaceMenuContainerRef = useRef<HTMLElement>();
   const [nameOfGPT, setNameOfGPT] = useState("");
+  const [isOpenCancelSubsModal, setisOpenCancelSubsModal] = useState(false);
+  const [tool_id, setTool_id] = useState("");
+  console.log("tool_id: ", tool_id);
+
   const [
     AddToolModelGpt,
     { isLoading: isSubmitting, error, isError, isSuccess },
@@ -71,10 +76,15 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
     isFetching: randomImageLoading,
     refetch: refetchRandomImage,
   } = useGetRandomImageriesQuery("");
+  const {
+    data: Logo_randomImage,
+    isFetching: Logo_randomImageLoading,
+    refetch: Logo_refetchRandomImage,
+  } = useGetRandomLogoImageriesQuery("");
   useOnClickOutside(workspaceMenuContainerRef, () => setDropdownOpen(false));
-   const activeChatModel = useAppSelector(
-      (state: any) => state.chat.activeChatModel
-    );
+  const activeChatModel = useAppSelector(
+    (state: any) => state.chat.activeChatModel
+  );
 
   const handleAddContextToGpt = async (e: any, tool_id: string) => {
     e.stopPropagation();
@@ -112,18 +122,18 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
         is_agree: true,
         introtext: "",
         tool_monetization: "free",
-        logo: randomImage.random_image,
+        logo: Logo_randomImage.random_image,
         chat_model: activeChatModel?.id,
         url: "",
         prompt: "",
-        context_window: [],
-        is_public:false
+        context_window: selectedText?.length > 0 ? [selectedText] : [],
+        is_public: false,
       });
-      
-        toast.success("GPT created successfully.");
-        setTimeout(() => {
-          window.location.reload()
-        }, 500);
+
+      toast.success("GPT created successfully.");
+      // setTimeout(() => {
+      //   window.location.reload()
+      // }, 500);
       //   setDropdownOpen(false);
       //   setNameOfGPT('')
       // } catch (error) {
@@ -150,11 +160,11 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
   }, [isError, isSuccess]);
 
   return (
-    <div className={`${showGogleIcon ? "opacity-100" : "opacity-0"}`}>
+    <div>
       <Button
         variant="bordered"
         onClick={handleToggleDropdown}
-        className="border-0 min-w-max px-0 !outline-none flex-shrink-0 relative group transition-all w-9 h-9"
+        className={`${showGogleIcon ? "opacity-100" : "opacity-0"} border-0 min-w-max px-0 !outline-none flex-shrink-0 relative group transition-all w-9 h-9`}
       >
         <AddToGptIcon className="text-white cursor-pointer" />
       </Button>
@@ -230,7 +240,7 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
                                 open: true,
                                 isEditable: true,
                                 tool_details: tool,
-                                category: 'gpt'
+                                category: "gpt",
                               });
                             }}
                             startContent={
@@ -244,6 +254,10 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
 
                           <DropdownItem
                             className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
+                            onClick={() => {
+                              setTool_id(tool?.id);
+                              setisOpenCancelSubsModal(true);
+                            }}
                             startContent={
                               <>
                                 <Trashicon className="-left-[1px] relative" />
@@ -290,12 +304,12 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
                   "font-bold mb-0 text-[#585858] bg-transparent text-sm font-helvetica caret-white data-[has-start-content=true]:ps-2.5",
               }}
               value={nameOfGPT}
-              onKeyDown={(e) => {
+              onKeyDown={(e:any) => {
                 if (e?.key === "Enter") {
                   handleSubmit();
                 }
               }}
-              onChange={(e) => setNameOfGPT(e.target.value)}
+              onChange={(e:any) => setNameOfGPT(e.target.value)}
               endContent={
                 isSubmitting ? (
                   <Spinner color="default" size="sm" />
@@ -322,119 +336,16 @@ const AddToGPTChat: React.FC<AddToGptChatProps> = ({
           )}
         </div>
       </Transition>
-      {/* <Dropdown
-        isOpen={dropdownOpen}
-        onOpenChange={handleDropdownToggle}
-        placement="left-start"
-        classNames={{
-          base: "before:bg-default-200",
-          content:
-            "py-1 px-1 from-white to-default-200 dark:from-default-50 dark:to-black",
-        }}
-      >
-        <DropdownTrigger>
-          <Button
-            variant="bordered"
-            className="border-0 min-w-max px-0 !outline-none flex-shrink-0 relative group transition-all w-9 h-9"
-          >
-            <AddToGptIcon className="text-white cursor-pointer" />
-          </Button>
-        </DropdownTrigger>
-        <DropdownMenu
-          variant="faded"
-          classNames={{
-            base: "bg-[#171717] !m-0",
-          }}
-          disabledKeys={["notfoundmodels", "notfoundgpts"]}
-        >
-          <DropdownSection classNames={{ base: "!m-0" }}>
-            <DropdownItem
-              isVirtualized={true}
-              classNames={{
-                title: "text-[#858584] text-sm	font-regular	font-helvetica",
-                base: "!bg-transparent !border-0 !m-0",
-              }}
-            >
-              {`Select GPT to add context to:`}
-            </DropdownItem>
-          </DropdownSection>
-          <DropdownSection classNames={{ group: "!space-y-0.5" }}>
-            {gptsList?.tools?.length > 0 ? (
-              gptsList?.tools?.map((tool: any) => {
-                return (
-                  <DropdownItem
-                    key={tool?.id}
-                    classNames={{
-                      title: "text-[#CCCCCC] text-sm font-helvetica",
-                      base: "p-0 !bg-transparent !border-0 p-2 hover:!bg-gray-500 hover:!bg-opacity-15",
-                    }}
-                    startContent={
-                      <Avatar
-                        src={tool?.logo}
-                        alt={"tools-image"}
-                        showFallback={true}
-                        radius="sm"
-                        className="2xl:h-[24px] 2xl:w-[24px] xl:h-[24px] xl:w-[24px] h-[24px] w-[24px] cursor-pointer bg-transparent rounded-full"
-                        fallback={
-                          <Image
-                            src={"/svg/user.svg"}
-                            alt="tools-logo-img"
-                            width={50}
-                            height={50}
-                          />
-                        }
-                      />
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent dropdown close
-                      handleAddContextToGpt(e, tool.id);
-                    }}
-                    endContent={
-                        <EllipsisHorizontalIcon className="w-5 h-5 text-[#ABABAB]" />
-                    }
-                  >
-                    {tool.name}
-                  </DropdownItem>
-                );
-              })
-            ) : (
-              <DropdownItem
-                classNames={{
-                  title: "text-[#CCCCCC] text-sm font-helvetica",
-                  base: "p-0 my-2 mx-1 !bg-transparent !border-0",
-                }}
-                key={"notfoundmodels"}
-              >
-                {"No GPTs found."}
-              </DropdownItem>
-            )}
-          </DropdownSection>
-          <DropdownSection>
-            <DropdownItem
-              classNames={{
-                title: "text-[#CCCCCC] text-sm font-helvetica",
-                base: "p-0 mb-2 mx-1 !bg-transparent !border-0",
-              }}
-              startContent={
-                <div className="text-white w-[24px] h-[24px] flex items-center justify-center bg-[#A5A5A5] text-[16px] rounded">
-                  +
-                </div>
-              }
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent dropdown close
-                setshowAddGpt(true)
-                setAddToolModelGpt({ ...addToolModelGpt, open: true });
-              }}
-            >
-              Create GPT
-              <Input endContent={<svg onClick={()=> setshowAddGpt(false)} xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 18 18" fill="none">
-                                    <path fill="#6A6A6A" d="M10.1665 9.00805L17.762 1.43822C18.0793 1.11791 18.0793 0.598995 17.762 0.278681C17.4503 -0.0473594 16.9355 -0.0571515 16.6118 0.256802L9.01628 7.82663L1.51839 0.256802C1.36467 0.0928811 1.15078 0 0.927025 0C0.703266 0 0.489378 0.0928811 0.335658 0.256802C0.0543006 0.566276 0.0543006 1.04123 0.335658 1.35071L7.83354 8.9096L0.238001 16.4685C-0.0793336 16.7888 -0.0793336 17.3077 0.238001 17.628C0.389074 17.784 0.596845 17.871 0.813092 17.8687C1.03351 17.8867 1.25202 17.8159 1.42074 17.6718L9.01628 10.102L16.6118 17.7593C16.7629 17.9153 16.9707 18.0022 17.1869 18C17.4029 18.001 17.6102 17.9142 17.762 17.7593C18.0793 17.439 18.0793 16.9201 17.762 16.5998L10.1665 9.00805Z" />
-                                </svg>}  /> 
-            </DropdownItem>
-          </DropdownSection>
-        </DropdownMenu>
-      </Dropdown> */}
-      <AddGptModel open={editToolModelGpt} setOpen={setEditToolModelGpt} generateRandomImage={false}/>
+      <AddGptModel
+        open={editToolModelGpt}
+        setOpen={setEditToolModelGpt}
+        generateRandomImage={false}
+      />
+      <CancelSubscriptionModal
+        isOpenCancelSubsModal={isOpenCancelSubsModal}
+        setisOpenCancelSubsModal={setisOpenCancelSubsModal}
+        tool_id={tool_id}
+      />
     </div>
   );
 };

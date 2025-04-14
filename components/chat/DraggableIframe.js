@@ -24,8 +24,10 @@ const DraggableIframe = ({ onClose, iFrameModel }) => {
   const [GenerateDataTokenForTools] = useGenerateDataTokenForToolsMutation();
   const resizableRef = useRef(null);
   const searchParams = useSearchParams();
-  const chat_id = searchParams.get("chat");
-  const group_id = searchParams.get("group");
+  // const chat_id = searchParams.get("chat");
+  const { id: chat_id } = useAppSelector((state) => state.chat.activeChat);
+  // const group_id = searchParams.get("group");
+  const group_id = JSON.parse(localStorage.getItem("group") || "{}")?._id;
   const workspace_id = localStorage.getItem("workspace_id");
     const [CreateEmptyChat] = useCreateEmptyChatMutation();
     const workspace_id_local = localStorage.getItem("workspace_id");
@@ -48,13 +50,12 @@ const DraggableIframe = ({ onClose, iFrameModel }) => {
   const [webhookToken, setWebhookToken] = useState(null);
   const [chatId, setChatId] = useState(null)
 
-
   useEffect(() => {
     generateTokenForCustomTools();
   }, [iFrameModel, chatId]);
 
   useEffect(() => {
-    if(chat_id === 'new'){
+    if(chat_id === 'new' || !chat_id){
       handleCreateEmptyChat()
     }else{
       setChatId(chat_id)

@@ -16,6 +16,7 @@ import { useDeleteWorkspaceMutation } from "@/app/lib/features/workspace/workspa
 import { useCancelToolSubscriptionMutation } from "@/app/lib/features/chat/chatApi";
 import toast from "react-hot-toast";
 import ToastService from "@/components/Toaster/toastService";
+import { usePathname } from "next/navigation";
 
 const DeleteToolConfirmationModal = ({
   deleteTool,
@@ -24,6 +25,7 @@ const DeleteToolConfirmationModal = ({
   getSubscribedToolsData,
   refetchToolListOnHome,
 }) => {
+  const path = usePathname();
   const [CancelToolSubscription] = useCancelToolSubscriptionMutation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const tool_id = deleteTool?.tool_id;
@@ -41,9 +43,15 @@ const DeleteToolConfirmationModal = ({
           if (refetchToolListOnHome) {
             refetchToolListOnHome();
           }
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
+          if (path === "/marketplace/tools-details") {
+            setTimeout(() => {
+              window.location.href = "/profile/my-tools";
+            }, 500);
+          } else {
+            setTimeout(() => {
+              window.location.reload();
+            });
+          }
         })
         .catch((error) => {
           console.log("###_error_### ", error);

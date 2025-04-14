@@ -19,6 +19,7 @@ import { useFormik } from "formik";
 import { useCancelToolSubscriptionMutation } from "@/app/lib/features/chat/chatApi";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
+import ToolsDetailsModal from "../toolsDetailsComponents/toolsDetailModal";
 
 const CancelSubscriptionModal = ({
   setIsModalVisible,
@@ -35,6 +36,8 @@ const CancelSubscriptionModal = ({
   const [isViewDetails, setIsViewDetails] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [toolId, setToolId] = useState("");
 
   const formik = useFormik({
     initialValues: { tool_id },
@@ -82,13 +85,11 @@ const CancelSubscriptionModal = ({
     [searchParams]
   );
 
-  const navigateToolDetailsPage = (tool_id) => {
+  const navigateToolDetailsPage = (toolId) => {
     setIsViewDetails(true);
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id })
-    );
+    setToolId(toolId);
+    setShowtoolDetailModal(true);
+    handleCancel();
   };
   return (
     <>
@@ -138,8 +139,8 @@ const CancelSubscriptionModal = ({
             <Button
               className="bg-[#414141]  text-white font-normal rounded-md h-[36px] text-sm"
               block
-              isLoading={isViewDetails}
-              disabled={isSubmitting?.open || isViewDetails}
+              // isLoading={isViewDetails}
+              disabled={isSubmitting?.open}
               onPress={() => navigateToolDetailsPage(planDetails?.tool_id)}
             >
               View Details
@@ -147,6 +148,15 @@ const CancelSubscriptionModal = ({
           </div>
         </div>
       </Modal>
+      
+      {showtoolDetailModal && 
+                              (
+                                <ToolsDetailsModal
+                                  setShowtoolDetailModal={setShowtoolDetailModal}
+                                  showtoolDetailModal={showtoolDetailModal}
+                                  tool_id={toolId}
+                                />
+                              )}
     </>
   );
 };

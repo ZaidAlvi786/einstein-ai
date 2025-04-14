@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { ChatResponse, ChatRecord, LoaderState } from "@/types/ChatTypes";
 import ChatBlock from "./typedChatComponents/ChatBlock";
-import PluginMenu from "./PluginMenu";
+import PluginMenu from "./typedChatComponents/PluginMenu";
 import FeedBackBtn from "../Feedback/feedbackBtn";
 import { ChatBlockPrompt } from "./ChatBlockPrompt";
 import ChatInput from "./typedChatComponents/ChatInput";
@@ -25,7 +25,11 @@ import DraggableIframe from "./DraggableIframe";
 import toast from "react-hot-toast";
 import ReplyBlockUser from "./typedChatComponents/ReplyBlockUser";
 import { Image } from "@nextui-org/react";
-import { AttachedImageBlock } from "./typedChatComponents/AttachedImageBlock";
+import { AttachedFileBlock } from "./typedChatComponents/AttachedFileBlock";
+import AddNewChat from "./typedChatComponents/AddNewChat";
+import InviteFriends from "./typedChatComponents/InviteFriends";
+import AnimatedChatLoader from "./typedChatComponents/AnimatedChatLoader/AnimatedChatLoader";
+import { animationViewType } from "./chatConstants";
 
 interface ChatError {
   index: number | null;
@@ -33,14 +37,16 @@ interface ChatError {
   userMsg?: string;
 }
 
-const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
+const Chat: React.FC<ChatProps> = ({ chatHistoryID, NewChat }) => {
   const auth: any = useAuth();
   const [getHistoryByIdAPI, { isFetching: isHistoryApiLoading }] =
     useLazyGetHistoryByIdQuery();
   const [chatData, setChatData] = useState<ChatResponse>([]);
   console.log("chatData: ", chatData);
   const messages = useAppSelector((state: any) => state.webSocket.messages);
-  console.log("messages: pppp", messages);
+  const activeChatModel = useAppSelector(
+    (state: any) => state.chat.activeChatModel
+  );
   const [showReply, setShowReply] = useState({
     message: null,
     index: null,
@@ -53,7 +59,6 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
     errMsg: "Contact Support Team for help: contact@togl.ai",
     userMsg: "",
   });
-  console.log("🚀 ~ chatError:", chatError);
 
   const [showLoader, setShowLoader] = useState<LoaderState>({
     prompt: "",
@@ -61,8 +66,9 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
     index: null,
     attachedFiles: [],
   });
-  console.log("🚀 ~ showLoader:", showLoader);
+  const [showAnimatedChatLoader, setShowAnimatedChatLoader] = useState(false)
   const [editModeIndex, setEditModeIndex] = useState(-1);
+  const [editingMessage, setEditingMessage] = useState("");
 
   useEffect(() => {
     getChatHistory();
@@ -71,7 +77,6 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
   useEffect(() => {
     if (!socketActionsList.includes(messages?.action)) return;
     if (messages?.status_code && messages?.status_code === 402) {
-      console.log("messages 402: ", messages);
       // Show err
       toast.error(messages?.content?.message);
       setShowLoader({
@@ -99,6 +104,20 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
     }
     setChatData([]);
   }, [messages]);
+
+  useEffect(() => {
+    if (showLoader?.isloading) {
+      const model = animationViewType.find(model => model?.modelName === activeChatModel?.name)
+      if (model) {
+        setShowAnimatedChatLoader(true)
+      }
+
+    } else {
+      setShowAnimatedChatLoader(false)
+    }
+
+  }, [showLoader])
+
 
   const getChatHistory = () => {
     if (!chatHistoryID) {
@@ -164,7 +183,9 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
       // WS 101
       wsRef.onmessage = (event: any) => {
         const IncomingMessage = parseIfJson(event?.data);
-        console.log("IncomingMessage: =", IncomingMessage);
+        if (IncomingMessage.type === "tool_trial_ended") {
+        toast.error("You completed your free trial")
+        }
         if (
           IncomingMessage.status_code &&
           IncomingMessage.status_code !== 200
@@ -173,16 +194,16 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
           if (IncomingMessage?.prompt) {
             userPrompt = IncomingMessage?.prompt;
           }
-          // Set error message on ondex
-          setChatError({
-            ...chatError,
-            index: IncomingMessage.index,
-            errMsg:
-              IncomingMessage.content.message ||
-              IncomingMessage.content.data ||
-              "Something went wrong",
-            userMsg: userPrompt,
-          });
+          // Set error message on Index ( show error on chat block)
+          // setChatError({
+          //   ...chatError,
+          //   index: IncomingMessage.index,
+          //   errMsg:
+          //     IncomingMessage.content.message ||
+          //     IncomingMessage.content.data ||
+          //     "Something went wrong",
+          //   userMsg: userPrompt,
+          // });
         }
       };
       return () => {
@@ -204,6 +225,13 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
     setIFrameModel(model);
   };
 
+  const acceptType: any = activeChatModel?.image_upload_support
+    ? "image/*"
+    : activeChatModel?.document_upload_support
+      ? ".pdf, .txt, .docx, .doc, .csv, .xlsx"
+      : activeChatModel?.audio_upload_support
+        ? ".mp3, .mpeg, .wav"
+        : "*";
   return (
     <>
       <div className="max-w-[920px] chat-container mx-auto max-mxl:max-w-[900px] max-mlg:max-w-[800px] max-xl:max-w-[600px] max-msm:max-w-[360px] max-msm:mx-auto">
@@ -213,31 +241,33 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
         >
           {chatData?.length > 0
             ? chatData.map((chatRecord: ChatRecord, index: number) => (
-                <>
-                  <ChatBlock
-                    key={index}
-                    chatRecord={chatRecord}
-                    index={index}
-                    showLoader={showLoader}
-                    setShowLoader={setShowLoader}
-                    chatError={chatError}
-                    setShowReply={setShowReply}
-                    showReply={showReply}
-                    setEditModeIndex={setEditModeIndex}
-                    editModeIndex={editModeIndex}
-                    getChatHistory={getChatHistory}
-                    isHistoryApiLoading={isHistoryApiLoading}
-                  />
-                </>
-              ))
+              <>
+                <ChatBlock
+                  key={index}
+                  chatRecord={chatRecord}
+                  index={index}
+                  showLoader={showLoader}
+                  setShowLoader={setShowLoader}
+                  chatError={chatError}
+                  setShowReply={setShowReply}
+                  showReply={showReply}
+                  setEditModeIndex={setEditModeIndex}
+                  editModeIndex={editModeIndex}
+                  getChatHistory={getChatHistory}
+                  isHistoryApiLoading={isHistoryApiLoading}
+                  editingMessage={editingMessage}
+                  setEditingMessage={setEditingMessage}
+                  acceptType={acceptType}
+                />
+              </>
+            ))
             : !showLoader?.isloading && <LetsMakeSomething />}
 
           {showLoader?.isloading && showLoader.index === null && (
             <>
               {showReply?.text && <ReplyBlockUser text={showReply.text} />}
-              <div className="w-full flex justify-end">
-              
-                <div className="max-w-max break-words text-[20px] text-[#FFF] font-helvetica font-normal leading-8 bg-[#272727] rounded-[20px] py-2 px-5 ">
+              <div className="w-full flex justify-end max-w-[60%] ml-auto">
+                <div className="max-w-[700px] break-words text-[20px] text-[#FFF] font-helvetica font-normal leading-8 bg-[#272727] rounded-[20px] py-2 px-5 ">
                   <div className="user-prompt">
                     <div
                       className="text-[17px] text-[#E4E4E4] font-helvetica font-normal break-words leading-7"
@@ -245,12 +275,19 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
                     >
                       {showLoader.prompt}
                     </div>
+                    {/* <div
+                      className="text-[17px] text-[#E4E4E4] font-helvetica font-normal break-words leading-7 user-prompt-47"
+                      style={{ whiteSpace: "pre-wrap" }}
+                      dangerouslySetInnerHTML={{ __html: showLoader.prompt }}
+                    /> */}
                   </div>
                 </div>
               </div>
-                {showLoader?.attachedFiles?.length > 0 && (
+              {showLoader?.attachedFiles?.length > 0 && (
                 <div className="w-full flex justify-end items-center mt-2">
-                  <AttachedImageBlock attachedFiles={showLoader?.attachedFiles}/>
+                  <AttachedFileBlock
+                    attachedFiles={showLoader?.attachedFiles}
+                  />
                 </div>
               )}
               <Loader />
@@ -262,6 +299,7 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
       <div
         className={`fixed bottom-0 flex flex-col align-items-end w-[-webkit-fill-available]  max-h-[258.75px] mb-3 mx-auto items-center max-xl:pr-2 
           `}
+        style={{ width: "inherit" }}
       >
         <div className="flex flx-row pl-3 items-end 2xl:gap-[23px] xl:gap-[17px] w-full max-msm:mb-3 justify-center  max-h-[226.75px]">
           <div
@@ -272,12 +310,15 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
               showDraggableModal={activeModalHandler}
               messages={messages}
             />
+            <AddNewChat NewChat={NewChat} />
             <ChatInput
               setShowLoader={setShowLoader}
               scrollRef={scrollRef}
               showReply={showReply}
               setShowReply={setShowReply}
               showLoader={showLoader}
+              editingMessage={editingMessage}
+              acceptType={acceptType}
             />
           </div>
           <div>
@@ -292,6 +333,11 @@ const Chat: React.FC<ChatProps> = ({ chatHistoryID }) => {
           iFrameModel={iFrameModel}
         />
       )}
+      {auth && auth?.user && auth?.user?.email && auth?.user?.fullname && (
+        <InviteFriends chatHistoryID={chatHistoryID} />
+      )}
+      {(showLoader?.isloading && showAnimatedChatLoader) &&
+        <AnimatedChatLoader setShowAnimatedChatLoader={setShowAnimatedChatLoader} />}
     </>
   );
 };

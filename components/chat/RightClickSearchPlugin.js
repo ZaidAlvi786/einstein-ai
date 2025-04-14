@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Menu,
   MenuHandler,
@@ -8,11 +8,11 @@ import {
 } from "@material-tailwind/react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation"; // Import useRouter
+import ToolsDetailsModal from "../toolsDetailsComponents/toolsDetailModal";
 
 const RightClickSearchPlugin = ({
   menuOpen,
   setMenuOpen,
-  position,
   selectSearchTool,
   setSearchText,
   OnRightclickPinned,
@@ -20,6 +20,8 @@ const RightClickSearchPlugin = ({
 }) => {
   const router = useRouter(); // Use useRouter to access the router object
   const searchParams = useSearchParams();
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
 
   const handleClose = () => {
     setMenuOpen(false);
@@ -41,11 +43,8 @@ const RightClickSearchPlugin = ({
   const navigateToolDetailsPage = (e, tool_id) => {
     e.stopPropagation();
     if (!tool_id) return; // Ensure tool_id exists before navigating
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
   };
 
   return (
@@ -135,6 +134,14 @@ const RightClickSearchPlugin = ({
         </MenuList>
       </Menu>
       {/* )} */}
+          {showtoolDetailModal && 
+                              (
+                                <ToolsDetailsModal
+                                  setShowtoolDetailModal={setShowtoolDetailModal}
+                                  showtoolDetailModal={showtoolDetailModal}
+                                  tool_id={tool_id}
+                                />
+                              )}
     </div>
   );
 };

@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import MarketplaceCard from "@/components/marketplace/MarketplaceCard";
 import BackIcon from "@/app/assets/svg/back-icon.svg";
 import NextIcon from "@/app/assets/svg/forward-icon.svg";
+import ToolsDetailsModal from "@/components/toolsDetailsComponents/toolsDetailModal";
 
 const dummyData2 = [
   { btnText: "Design" },
@@ -51,6 +52,8 @@ const PluginsPage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true); // show loader on tag click (added because showing no tools found for a few seconds)
   const observerRef = useRef(null);
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
   const {
     data: pluginsData,
     isFetching: pluginsLoading,
@@ -133,11 +136,9 @@ const PluginsPage = () => {
   );
 
   const navigateToolDetailsPage = (tool_id) => {
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
+   
   };
 
   const handleScroll = (direction) => {
@@ -468,6 +469,14 @@ const PluginsPage = () => {
           )}
         </div>
       </div>
+       {showtoolDetailModal && 
+                  (
+                    <ToolsDetailsModal
+                      setShowtoolDetailModal={setShowtoolDetailModal}
+                      showtoolDetailModal={showtoolDetailModal}
+                      tool_id={tool_id}
+                    />
+                  )}
     </>
   );
 };

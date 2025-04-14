@@ -12,10 +12,18 @@ import RegisterButton from "../ui/RegisterButton";
 import { useAuth } from "../../app/authContext/auth";
 import toast from "react-hot-toast";
 import ToastService from "@/components/Toaster/toastService";
+import { useAppDispatch } from "../lib/hooks";
+import { setActiveChat } from "../lib/features/chat/chatSlice";
+import { setCurrentActiveGroup } from "../lib/features/chat/groupSlice";
+import { setActiveWorkspace } from "../lib/features/workspace/workspaceSlice";
+import { workspaceApi } from "../lib/features/workspace/workspaceApi";
+import { chatApi } from "../lib/features/chat/chatApi";
+import HandleLocalStorageState from "../utils/localStorage/localStorageState";
 
 const RegistrationOptions = () => {
   const router = useRouter();
   const auth = useAuth();
+  const dispatch = useAppDispatch();
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [showRegistrationOptions, setShowRegistrationOptions] = useState(true);
   const [showEmailCodeForm, setShowEmailCodeForm] = useState(false);
@@ -57,6 +65,7 @@ const RegistrationOptions = () => {
               }
               if (response.status === 200) {
                 toast.success("Logged in successfully");
+                const token = response?.data?.access_token;
                 auth.login({
                   userID: response.data.user_id,
                   email: response.data.email,
@@ -66,10 +75,12 @@ const RegistrationOptions = () => {
                   price: response.data.price,
                   visitor_id: response.data.visitor_id,
                 });
-                router.push("/");
-                setTimeout(() => {
-                  window.location.reload(); // Reload only after redirect
-                }, 500);
+                OnSuccessfullyRegistered(token);
+                if (response?.data?.plan === "paid") {
+                  window.location.href = "/";
+                } else {
+                  window.location.href = "/subscription";
+                }
               }
             })
             .catch((error) => {
@@ -79,6 +90,50 @@ const RegistrationOptions = () => {
         .catch((err) => console.log(err));
     }
   }, [user]);
+
+    const OnSuccessfullyRegistered = (token) => {
+      localStorage.setItem("showTutorialPopup", true);
+      GetShareChatLink(token);
+      localStorage.removeItem("workspace_name");
+      localStorage.removeItem("workspace_id");
+      localStorage.removeItem("group");
+      localStorage.removeItem("activeChatLocalStorage"); // removed prev activeChat during logout may be
+      dispatch(setActiveChat({}));
+      dispatch(setCurrentActiveGroup({}));
+      dispatch(setActiveWorkspace({}));
+      dispatch(workspaceApi.util.invalidateTags(["workspace-list"]));
+      dispatch(
+        chatApi.util.invalidateTags([
+          "group-list",
+          "history-chat-by-workspace-id",
+        ])
+      );
+    };
+
+      const GetShareChatLink = (token) => {
+        const chatshare_chat_token = HandleLocalStorageState(
+          "share_chat_token",
+          "",
+          "get"
+        );
+        if (chatshare_chat_token) {
+          const body = { token: chatshare_chat_token };
+    
+          axios
+            .post(`${apiURL}/auth/token`, body, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => {
+              HandleLocalStorageState("share_chat_token", "", "remove");
+            })
+            .catch((err) => {
+              console.log("####_error_#### ", err);
+              toast.error(
+                (err?.message ?? err?.data?.message) || "Something went wrong!"
+              );
+            });
+        }
+      };
 
   const toggleRegistrationForm = () => {
     router.push("/");
@@ -180,7 +235,9 @@ const RegistrationOptions = () => {
             price: response.data.data.price,
             visitor_id: response.data.data.visitor_id,
           });
-          router.push("/");
+          localStorage.removeItem("activeChatLocalStorage"); // removed prev activeChat during logout may be
+          localStorage.setItem("showTutorialPopup", true);
+          window.location.href="/"
         }
       } catch (err) {
         toast.error(
@@ -197,7 +254,7 @@ const RegistrationOptions = () => {
   };
 
   return (
-    <div className="h-screen overflow-auto bg-cover bg-[url('/background.png')] flex flex-col items-center justify-center">
+    <div>
       {/* {showRegistrationOptions && (
         <div className="flex items-center justify-center min-h-screen">
           <section className="flex flex-col items-center px-7 pt-4 pb-6 text-xl font-medium text-white rounded-[10px] bg-[#2D2D2D] min-w-[400px]">
