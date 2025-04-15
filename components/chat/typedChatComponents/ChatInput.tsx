@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import { VoiceRecognition } from "../VoiceRecognition";
-import { Avatar, Image, Spinner } from "@nextui-org/react";
+import { Avatar, Image, Spinner, Tooltip } from "@nextui-org/react";
 import { useAppDispatch, useAppSelector } from "@/app/lib/hooks";
 import { useAuth } from "@/app/authContext/auth";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -25,6 +25,13 @@ import SendIcon from "@/public/icons/svg/SendIcon";
 import ReplyBlockInput from "./ReplyBlockInput";
 import { useCreateEmptyChatMutation } from "@/app/lib/features/chat/chatApi";
 import { FileDropZone } from "./FileDropZone";
+import SelectModelOnChatPopup from "./SelectModelOnChat";
+import {
+  audioTypeSupport,
+  fileTypeSupport,
+  imageTypeSupport,
+} from "../chatConstants";
+import TextEditor from "./TextEditor";
 
 const ChatInput: React.FC<ChatInputProps> = ({
   setShowLoader,
@@ -32,6 +39,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   showReply,
   setShowReply,
   showLoader,
+  editingMessage,
+  acceptType,
 }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -40,14 +49,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const fileInputRefNew = useRef<HTMLInputElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const activeChat = useAppSelector((state: any) => state.chat.activeChat);
-  console.log("activeChat: ", activeChat);
   const ws = useAppSelector((state: any) => state.webSocket.ws);
   const connected = useAppSelector((state: any) => state.webSocket.connected);
   const [value, setValue] = useState<string>("");
+
   const activeChatModel = useAppSelector(
     (state: any) => state.chat.activeChatModel
   );
-  console.log("activeChatModel: ", activeChatModel);
   const activeGroup = useAppSelector(
     (state: any) => state.group.currentActiveGroup
   );
@@ -56,22 +64,50 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [CreateEmptyChat] = useCreateEmptyChatMutation();
   const workspace_id_local = localStorage.getItem("workspace_id");
   const [attachedFiles, setAttachedFiles] = useState<any>([]);
-  console.log("🚀 ~ attachedFiles:", attachedFiles);
   const [isLoadingAttachedFiles, setIsLoadingAttachedFiles] = useState(false);
-  const [preview, setPreview] = useState<string[]>([]);
+  const [SelectModeldropdownOpen, setSelectModelDropdownOpen] =
+    useState<any>(false);
+
+  const activeChatLocalStorage: any = localStorage.getItem(
+    "activeChatLocalStorage"
+  );
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // After reloading on existing chat reset setActiveChat from local
+    if (JSON.parse(activeChatLocalStorage)?.id) {
+      dispatch(setActiveChat(JSON.parse(activeChatLocalStorage)));
+    }
+  }, [activeChatLocalStorage]);
+
+
+
+  const ExtracttitleFromHtml = (htmlString: any) => {
+    const parser = new DOMParser();
+    const doc: any = parser.parseFromString(htmlString, "text/html");
+    return doc.body.textContent.trim();
+  };
 
   const handleCreateEmptyChat = () => {
     if (value.length === 0) return; // only run if some text are there in chat input
+    const extractedText = ExtracttitleFromHtml(value);
     try {
       const data = {
         workspace_id: workspace_id_local,
         group_id: activeGroup?._id ?? "",
-        chat_title: value.slice(0, 20),
+        chat_title:
+          extractedText.length > 100
+            ? extractedText.slice(0, 99) + "..."
+            : extractedText,
       };
       let newChatId = null;
       CreateEmptyChat(data).then((res) => {
         newChatId = res.data.chat_id;
         TextGenerate(res.data.chat_id);
+        setValue("");
+        // if (editorRef.current) {
+        //   editorRef.current.innerHTML = "";
+        // }
       });
       return newChatId;
     } catch (error) {
@@ -81,10 +117,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const stopListening = () => {
     SpeechRecognition.stopListening();
-    setValue("");
+    // setValue("");
   };
 
   const TextGenerate = (chatId: string) => {
+    if(!connected){
+      toast.error("Connection lost. Please relaod and try again.")
+      return
+    }
     if (value.length === 0 || showLoader?.isloading) return;
     if (Object.keys(activeChatModel).length === 0)
       return toast.error("Please subscribe any tool for chat");
@@ -123,8 +163,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
           };
           ws?.send(JSON.stringify(data));
           setValue("");
+          // if (editorRef.current) {
+          //   editorRef.current.innerHTML = "";
+          // }
+
           setAttachedFiles([]);
-          setPreview([]);
           setShowLoader({
             prompt: value,
             isloading: true,
@@ -139,11 +182,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
         }
       }
       if (!activeChat?.id) {
-        // selectFirstChatOnWorkspaceChange();
+        const extractedText = ExtracttitleFromHtml(value);
+
         const firstChat = {
           id: chatId,
-          title: value.slice(0, 5),
-          bot: value.slice(0, 5),
+          title:
+            extractedText.length > 50
+              ? extractedText.slice(0, 49) + "..."
+              : extractedText,
+          bot:
+            extractedText.length > 50
+              ? extractedText.slice(0, 49) + "..."
+              : extractedText,
           thumbnail_url: "",
           user_messages_count: 2,
           has_unread_messages: true,
@@ -153,11 +203,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
           pinned: false,
         };
         dispatch(setActiveChat(firstChat));
-        router.push(
-          "/?" +
-            createMultipleQueryString([
-              { name: "chat", value: chatId ?? "new" },
-            ])
+        // router.push(
+        //   "/?" +
+        //     createMultipleQueryString([
+        //       { name: "chat", value: chatId ?? "new" },
+        //     ])
+        // );
+        router.push("/");
+        localStorage.setItem(
+          "activeChatLocalStorage",
+          JSON.stringify(firstChat)
         );
       }
     } else {
@@ -212,15 +267,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
         const chats = chatResponse?.data?.data;
         if (chats?.length > 0) {
           const firstChat = chats?.[0];
-          console.log("firstChat: ", firstChat);
           if (firstChat) {
             dispatch(setActiveChat(firstChat));
-            router.push(
-              "/?" +
-                createMultipleQueryString([
-                  { name: "chat", value: firstChat?.id ?? "new" },
-                ])
+            localStorage.setItem(
+              "activeChatLocalStorage",
+              JSON.stringify(firstChat)
             );
+
+            // router.push(
+            //   "/?" +
+            //     createMultipleQueryString([
+            //       { name: "chat", value: firstChat?.id ?? "new" },
+            //     ])
+            // );
+            router.push("/");
           }
         }
       }
@@ -251,13 +311,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
       // Apply the new height
       textAreaRef.current.style.height = `${newHeight}px`;
-
-      console.log(
-        "Content Height:",
-        textAreaRef.current.scrollHeight,
-        "New Height Set:",
-        newHeight
-      );
     }
   };
 
@@ -277,30 +330,45 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="w-full relative flex flex-col gap-1 rounded-3xl 2xl:max-w-[700px] min-h-[52px] max-h-[226.75px] h-fit 2xl:min-h-[52px] xl:min-h-[52px] p-[6px] bg-[#272727] justify-center pb-[3.54px] pt-[3.54px] pl-[4.43px] pr-[2px]">
-      <div className="absolute -right-[45px] leading-[0]">
+    <div className="z-50 w-[700px] relative flex flex-col gap-1 rounded-3xl  min-h-[52px] max-h-[226.75px] h-fit 2xl:min-h-[52px] xl:min-h-[52px] p-[6px] bg-[#272727] justify-center pb-[3.54px] pt-[3.54px] pl-[4.43px] pr-[2px]">
+      <div
+        className="absolute -right-[45px] leading-[0] flex items-end mb-[8px]"
+        style={{ height: "-webkit-fill-available" }}
+      >
         <VoiceRecognition
           setValue={setValue}
           disabled={false}
           stopListening={stopListening}
+          // editorRef={editorRef}
         />
       </div>
       {showReply?.showInInput && showReply?.text?.trim()?.length > 0 && (
         <ReplyBlockInput showReply={showReply} setShowReply={setShowReply} />
       )}
-      {activeChatModel?.image_upload_support && (
-        <FileDropZone
-          fileInputRefNew={fileInputRefNew}
-          onFilesSelected={handleFilesSelected}
-          accept="image/*"
-          setAttachedFiles={setAttachedFiles}
-          setIsLoading={setIsLoadingAttachedFiles}
-          preview={preview}
-          setPreview={setPreview}
+      {editingMessage?.length === 0 &&
+        (activeChatModel?.image_upload_support ||
+          activeChatModel?.document_upload_support ||
+          activeChatModel?.audio_upload_support) && (
+          <FileDropZone
+            fileInputRefNew={fileInputRefNew}
+            onFilesSelected={handleFilesSelected}
+            accept={acceptType}
+            attachedFiles={attachedFiles}
+            setAttachedFiles={setAttachedFiles}
+            setIsLoading={setIsLoadingAttachedFiles}
+          />
+        )}
+
+      <div className={`flex items-end  pl-[3px] pr-[4px] w-full h-auto`}>
+        <SelectModelOnChatPopup
+          setDropdownOpen={setSelectModelDropdownOpen}
+          dropdownOpen={SelectModeldropdownOpen}
         />
-      )}
-      <div className={`flex items-end pr-[3px] w-full h-auto`}>
-        <Avatar
+        {/* <Avatar
+          onClick={(e) => {
+            // e?.preventDefault();
+            // setSelectModelDropdownOpen((prev: any) => !prev);
+          }}
           src={activeChatModel?.iconSrc || activeChatModel?.logo || ""}
           alt={activeChatModel?.modelName || ""}
           showFallback={true}
@@ -315,32 +383,71 @@ const ChatInput: React.FC<ChatInputProps> = ({
               />
             </div>
           }
-        />
-        {activeChatModel?.image_upload_support && (
-          <div className="flex items-center 2xl:min-w-[25px] xl:min-w-[18px] 2xl:h-[25px] xl:h-[18px] ml-[4px] justify-center my-auto">
+        /> */}
+
+        {(activeChatModel?.image_upload_support ||
+          activeChatModel?.document_upload_support ||
+          activeChatModel?.audio_upload_support) && (
+          <div className="flex items-end 2xl:min-w-[25px] xl:min-w-[18px] 2xl:h-[25px] xl:h-[18px] ml-[4px] justify-center mb-2.5">
             {isLoadingAttachedFiles ? (
               <Spinner size="sm" color="white" />
             ) : (
-              <Image
-                alt="attach icon"
-                width={11}
-                height={20}
-                src={"svg/attach.svg"}
-                className={`cursor-pointer max-h-10 mx-auto 2xl:w-[10.15px] xl:w-[10.15px] 2xl:h-[18.46px] xl:h-[18.46px] `}
-                onClick={handleImageClick}
-              />
+              <Tooltip
+                content={
+                  activeChatModel?.document_upload_support
+                    ? `Upload ${fileTypeSupport.join(", ")} file`
+                    : activeChatModel?.image_upload_support
+                    ? `Upload ${imageTypeSupport.join(", ")} file`
+                    : `Upload ${audioTypeSupport.join(", ")} file`
+                }
+                placement="top"
+                delay={0}
+                closeDelay={0}
+                classNames={{
+                  content:
+                    "bg-[#343434] text-sm font-normal leading-normal rounded-md px-[8px] py-[2px] helvetica-font text-white",
+                }}
+                motionProps={{
+                  variants: {
+                    exit: {
+                      opacity: 0,
+                      transition: {
+                        duration: 0.1,
+                        ease: "easeIn",
+                      },
+                    },
+                    enter: {
+                      opacity: 1,
+                      transition: {
+                        duration: 0.15,
+                        ease: "easeOut",
+                      },
+                    },
+                  },
+                }}
+                offset={10}
+              >
+                <Image
+                  alt="attach icon"
+                  width={11}
+                  height={20}
+                  src={"svg/attach.svg"}
+                  className={`cursor-pointer max-h-10 mx-auto 2xl:w-[10.15px] xl:w-[10.15px] 2xl:h-[18.46px] xl:h-[18.46px]`}
+                  onClick={handleImageClick}
+                />
+              </Tooltip>
             )}
           </div>
         )}
         <textarea
           id="review-text"
           value={value}
-          placeholder="Message"
+          placeholder={`Message ${activeChatModel?.name || ""}`}
           // rows={5}
           // maxLength={500}
           ref={textAreaRef}
           cols={0}
-          className="min-h-[35px] h-[35px] snap-y leading-[22.661px] placeholder:text-[#AAA] text-white  tracking-[0.142px] resize-none overflow-y-auto scrollbar-thumb-[#c3cbd3] py-[6px] text-[14.163px] 2xl:text-[16px] xl:text-[14.163px] font-helvetica w-full bg-transparent outline-none rounded font-normal ml-2 max-h-[216.75px] custom-scrollbar"
+          className="z-50 min-h-[35px] h-[35px] snap-y leading-[22.661px] placeholder:text-[#AAA] text-white  tracking-[0.142px] resize-none overflow-y-auto scrollbar-thumb-[#c3cbd3] py-[6px] text-[14.163px] 2xl:text-[16px] xl:text-[14.163px] font-helvetica w-full bg-transparent outline-none rounded font-normal ml-2 max-h-[216.75px] custom-scrollbar scrollbar-hide"
           disabled={
             activeChat?.role === "view" ||
             activeChat?.permission_type === "view"
@@ -359,8 +466,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
             handleKeyDown(e);
           }}
         />
+        {/* <TextEditor
+          value={value}
+          setValue={setValue}
+          activeChatModel={activeChatModel}
+          onKeyDown={handleKeyDown}
+          editorRef={editorRef}
+          isEdit={false}
+        /> */}
         <button
-          className={`cursor-pointer flex-row mr-[0px] w-[44.8px] h-[38px] rounded-full flex items-center justify-center transition-all duration-75 ${
+          className={`cursor-pointer flex-row mr-[0px] w-[44.8px] h-[38px] rounded-full flex items-center justify-center transition-all mb-[2px] duration-75 ${
             value.length > 0 && !showLoader?.isloading
               ? "bg-[#0A84FF]"
               : "bg-[#121212]"

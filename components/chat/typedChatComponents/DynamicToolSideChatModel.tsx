@@ -36,6 +36,7 @@ import { useOnClickOutside } from "@/app/hooks/useOnClickOutside";
 import AddToGptIcon from "@/app/assets/svg/add_to_gpt_icon.svg";
 import { useRouter, useSearchParams } from "next/navigation";
 import CancelSubscriptionModal from "../../billing/CancelSubscriptionModal";
+import ToolsDetailsModal from "@/components/toolsDetailsComponents/toolsDetailModal";
 
 function toTitleCase(str: string) {
   return str
@@ -67,7 +68,6 @@ const DynamicToolsSideChatPopup: React.FC<DynamicToolsSideChatPopupProps> = ({
   message,
   onStaticToolModelClicked,
 }) => {
-  console.log("🚀 ~ message: ddddyyy", message)
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -96,13 +96,15 @@ const DynamicToolsSideChatPopup: React.FC<DynamicToolsSideChatPopupProps> = ({
   const [isOpenCancelSubsModal, setisOpenCancelSubsModal] = useState(false);
   const [isConfirm, setIsConfirm] = useState(false);
   const [removeToolSubsId, setRemoveToolSubsId] = useState<any>(null);
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
+
 
   const result = filteredModelsAndGptsData(
     getUserToolsData?.subscribed_tools ?? []
   );
   const [UnsubscribeTool, isMutationLoading] = useUnsubscribeToolMutation();
 
-  console.log("🚀 ~ result:", result);
   // console.log(getUserToolsData, "resultresultresultresult");
 
   const [toolUrls, setToolUrls] = useState<ToolsLogoInfo>();
@@ -152,15 +154,12 @@ const DynamicToolsSideChatPopup: React.FC<DynamicToolsSideChatPopupProps> = ({
   );
 
   const navigateToolDetailsPage = (model: any) => {
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id: model.id })
-    );
+
+    setToolId(model.id);
+    setShowtoolDetailModal(true);
   };
 
   const openCancelSubsModal = (model: any) => {
-    console.log("🚀  openCancelSubsModal  model:", model);
     setRemoveToolSubsId(model);
     setIsConfirm(true);
     setDropdownOpen(false);
@@ -512,6 +511,14 @@ const DynamicToolsSideChatPopup: React.FC<DynamicToolsSideChatPopupProps> = ({
         handleCancelSubscription={handleRemove}
         isMutationLoading={false}
       />
+      {showtoolDetailModal && 
+                              (
+                                <ToolsDetailsModal
+                                  setShowtoolDetailModal={setShowtoolDetailModal}
+                                  showtoolDetailModal={showtoolDetailModal}
+                                  tool_id={tool_id}
+                                />
+                              )}
     </div>
   );
 };
