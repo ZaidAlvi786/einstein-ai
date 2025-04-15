@@ -19,10 +19,13 @@ interface ChatBlockProps {
   chatError: any;
   setShowReply: any;
   showReply: any;
-  editModeIndex:any;
-  setEditModeIndex:any;
-  getChatHistory:any;
-  isHistoryApiLoading:boolean
+  editModeIndex: any;
+  setEditModeIndex: any;
+  getChatHistory: any;
+  isHistoryApiLoading: boolean;
+  editingMessage: any;
+  setEditingMessage: any;
+  acceptType: any;
 }
 
 const ChatBlock: React.FC<ChatBlockProps> = ({
@@ -36,12 +39,13 @@ const ChatBlock: React.FC<ChatBlockProps> = ({
   editModeIndex,
   setEditModeIndex,
   getChatHistory,
-  isHistoryApiLoading
+  isHistoryApiLoading,
+  editingMessage,
+  setEditingMessage,
+  acceptType,
 }) => {
-  console.log("index: chatblock ", index);
   const [showGogleIcon, setShowGogleIcon] = useState(false);
-  const [editingMessage, setEditingMessage] = useState("");
-
+  const [attachedFiles, setAttachedFiles] = useState<any>([]);
 
   const enterEditMode = (message: string) => {
     setEditingMessage(message);
@@ -62,6 +66,10 @@ const ChatBlock: React.FC<ChatBlockProps> = ({
             setEditModeIndex={setEditModeIndex}
             getChatHistory={getChatHistory}
             isHistoryApiLoading={isHistoryApiLoading}
+            file_url={chatRecord[0]?.file_url}
+            attachedFiles={attachedFiles}
+            setAttachedFiles={setAttachedFiles}
+            acceptType={acceptType}
           />
         ) : (
           <div
@@ -72,6 +80,8 @@ const ChatBlock: React.FC<ChatBlockProps> = ({
               Index={index}
               setEditModeIndex={setEditModeIndex}
               enterEditMode={enterEditMode}
+              attachedFiles={attachedFiles}
+              setAttachedFiles={setAttachedFiles}
             />
           </div>
         )}

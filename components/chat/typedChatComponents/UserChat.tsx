@@ -4,15 +4,16 @@ import TooltipIcon from "./ToolTipIcon";
 import { UserChatProps } from "@/types/ChatTypes";
 import ReplyBlockUser from "./ReplyBlockUser";
 import { Image } from "@nextui-org/react";
-import { AttachedImageBlock } from "./AttachedImageBlock";
+import { AttachedFileBlock } from "./AttachedFileBlock";
 
 const UserChat: React.FC<UserChatProps> = ({
   message,
   setEditModeIndex,
   enterEditMode,
   Index,
+  attachedFiles,
+  setAttachedFiles,
 }) => {
-  console.log("message: UserChat", message);
   return (
     <div className="flex flex-col justify-end ml-2 max-w-xl items-end gap-2">
       {message?.reply && <ReplyBlockUser text={message?.reply} />}
@@ -23,13 +24,14 @@ const UserChat: React.FC<UserChatProps> = ({
             onClick={() => {
               enterEditMode(message?.content);
               setEditModeIndex(Index);
+              setAttachedFiles(message?.file_url || [])
             }}
           >
             <TooltipIcon title="Edit" Icon={EditTextIcon} />
           </div>
 
           <div className="">
-            <div className="max-w-max break-words text-[20px] text-[#FFF] font-helvetica font-normal leading-8 bg-[#272727] rounded-[20px] py-2 px-5">
+            <div className="max-w-[700px] break-words text-[20px] text-[#FFF] font-helvetica font-normal leading-8 bg-[#272727] rounded-[20px] py-2 px-5">
               <div className="user-prompt">
                 <div
                   className="text-[17px] text-[#E4E4E4] font-helvetica font-normal break-words leading-7"
@@ -37,6 +39,11 @@ const UserChat: React.FC<UserChatProps> = ({
                 >
                   {message.content}
                 </div>
+                {/* <div
+                      className="text-[17px] text-[#E4E4E4] font-helvetica font-normal break-words leading-7 user-prompt-47"
+                      style={{ whiteSpace: "pre-wrap" }}
+                      dangerouslySetInnerHTML={{ __html: message.content }}
+                    /> */}
               </div>
             </div>
             <div
@@ -52,7 +59,7 @@ const UserChat: React.FC<UserChatProps> = ({
       </div>
       {message?.file_url && message?.file_url?.length > 0 && (
         <div className="w-full flex justify-end items-center mt-2">
-          <AttachedImageBlock attachedFiles={message?.file_url} />
+          <AttachedFileBlock attachedFiles={message?.file_url} />
         </div>
       )}
     </div>
