@@ -1,0 +1,66 @@
+.card {
+    max-width: 50%;
+    width: 100%;
+    margin: 0px auto;
+    border-radius:50px;
+  }
+  
+  .card .inner {
+    padding: 15px;
+    background: #222;
+    color: #fff;
+    border-radius: 50px;
+  }
+
+  .card h3 {
+    margin-bottom: 15px;
+  }
+  
+  .example-2 {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .example-1 .inner,
+  .example-2 .inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  
+ 
+  @keyframes rotate {
+    from {
+      transform: rotate(0);
+    }
+  
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .example-2 .inner {
+    margin: 2px;
+  }
+  
+  .example-2::before {
+    content: "";
+    display: block;
+    background: linear-gradient(
+      90deg,
+      rgba(39, 39, 39, 1) 0%,
+      rgba(10, 132, 255, 1) 50%,
+      rgba(39, 39, 39, 1) 100%
+    );
+    height: 1000px;
+    width: 50px;
+    transform: translate(0);
+    position: absolute;
+    animation: rotate 3s linear infinite;
+    z-index: 0;
+    top: 50%;
+    transform-origin: top center;
+  }

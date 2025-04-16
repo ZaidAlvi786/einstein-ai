@@ -15,7 +15,8 @@ const ChatHistoryList = ({ getHistoryDetail = () => { } }) => {
   const activeWorkspace = useAppSelector(state => state.workspace.activeWorkspace);
 
   const searchParams = useSearchParams();
-  const activeChatId = searchParams.get('chat');
+  const { id: activeChatId } = useAppSelector((state) => state.chat.activeChat);
+  // const activeChatId = searchParams.get('chat');
   const [hoveredItem, setHoveredItem] = useState(null);
 
   return (<>

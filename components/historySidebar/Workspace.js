@@ -7,6 +7,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   useAddWorkspaceMutation,
   useGetAllWorkspacesQuery,
+  useRemoveMemberMutation,
   workspaceApi,
 } from "@/app/lib/features/workspace/workspaceApi";
 import {
@@ -51,10 +52,13 @@ import { Fragment } from "react";
 import CreateWorkspaceUsingInput from "../layout/workspace/createWorkspaceInput";
 import toast from "react-hot-toast";
 import ToastService from "../Toaster/toastService";
+import { UserMinusIcon } from "@heroicons/react/24/outline";
 const Workspace = ({
   NewChat,
-  getHistoryDetail = () => { },
-  setChatStatus = () => { },
+  getHistoryDetail = () => {},
+  setChatStatus = () => {},
+  isDropdownOpen, setDropdownOpen
+
 }) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
@@ -71,40 +75,49 @@ const Workspace = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const activeWorkspace = useAppSelector((state) => state.workspace.activeWorkspace);
-  const activeWorkspaceName = useMemo(() => activeWorkspace?.name ?? "", [activeWorkspace]);
-  const { data: allWorkSpaces, isLoading, refetch, isSuccess, error } = useGetAllWorkspacesQuery(auth?.user?.userID, { skip: !auth?.user?.userID, });
+  const activeWorkspace = useAppSelector(
+    (state) => state.workspace.activeWorkspace
+  );
+  const activeWorkspaceName = useMemo(
+    () => activeWorkspace?.name ?? "",
+    [activeWorkspace]
+  );
+  const {
+    data: allWorkSpaces,
+    isLoading,
+    refetch,
+    isSuccess,
+    error,
+  } = useGetAllWorkspacesQuery(auth?.user?.userID, {
+    skip: !auth?.user?.userID,
+  });
   const [addWorkspace] = useAddWorkspaceMutation();
   const [AddGroup] = useAddGroupMutation();
-  const workspaceMenuContainerRef = useRef();
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [RemoveMember] = useRemoveMemberMutation();
+ 
+  const createMultipleQueryString = useCallback(
+    (queryStringArray) => {
+      const params = new URLSearchParams(searchParams);
+      queryStringArray?.forEach(({ name, value }) => {
+        params.set(name, value);
+      });
 
-  const handleToggleDropdown = (e) => {
-    e?.preventDefault();
-    setDropdownOpen((prev) => !prev);
-  };
-
-  useOnClickOutside(workspaceMenuContainerRef, () => setDropdownOpen(false));
-
-  const createMultipleQueryString = useCallback((queryStringArray) => {
-    const params = new URLSearchParams(searchParams);
-    queryStringArray?.forEach(({ name, value }) => {
-      params.set(name, value);
-    });
-
-    return params.toString();
-  }, [searchParams]);
+      return params.toString();
+    },
+    [searchParams]
+  );
 
   useEffect(() => {
     const storedWorkspaceId = window.localStorage.getItem("workspace_id");
     if (activeWorkspace && activeWorkspace?._id) {
-      router.push(
-        pathname +
-        "?" +
-        createMultipleQueryString([
-          { name: "workspace", value: activeWorkspace?._id },
-        ])
-      );
+      // router.push(
+      //   pathname +
+      //     "?" +
+      //     createMultipleQueryString([
+      //       { name: "workspace", value: activeWorkspace?._id },
+      //     ])
+      // );
+      router.push(pathname);
     } else if (storedWorkspaceId) {
       const data = allWorkSpaces?.data || [];
       const selectedActiveWorkspace = data.find(
@@ -115,13 +128,14 @@ const Workspace = ({
       } else if (data?.length > 0) {
         dispatch(setActiveWorkspace(data[0]));
       }
-      router.push(
-        pathname +
-        "?" +
-        createMultipleQueryString([
-          { name: "workspace", value: storedWorkspaceId },
-        ])
-      );
+      // router.push(
+      //   pathname +
+      //     "?" +
+      //     createMultipleQueryString([
+      //       { name: "workspace", value: storedWorkspaceId },
+      //     ])
+      // );
+      router.push(pathname);
     }
   }, [activeWorkspace, pathname, router, allWorkSpaces]);
 
@@ -130,11 +144,12 @@ const Workspace = ({
   }, [workspaces]);
 
   const saveWorkspaceSession = useCallback((name, id) => {
-    router.push(
-      pathname +
-      "?" +
-      createMultipleQueryString([{ name: "workspace", value: id }])
-    );
+    // router.push(
+    //   pathname +
+    //     "?" +
+    //     createMultipleQueryString([{ name: "workspace", value: id }])
+    // );
+    router.push(pathname);
     window.localStorage.setItem("workspace_name", name);
     window.localStorage.setItem("workspace_id", id);
   }, []);
@@ -163,7 +178,10 @@ const Workspace = ({
           const storedWorkspaceId = window.localStorage.getItem("workspace_id");
           let activeWorkspaceId;
 
-          if (storedWorkspaceId && data.some((workspace) => workspace._id === storedWorkspaceId)) {
+          if (
+            storedWorkspaceId &&
+            data.some((workspace) => workspace._id === storedWorkspaceId)
+          ) {
             activeWorkspaceId = storedWorkspaceId;
           } else {
             activeWorkspaceId = data[0]._id;
@@ -211,16 +229,18 @@ const Workspace = ({
         const newGroupInfo = response?.data?.data[0] ?? {};
         dispatch(setCurrentActiveGroup(newGroupInfo));
         dispatch(setActiveChat({}));
+        localStorage.removeItem("activeChatLocalStorage"); // removed prev activeChat during logout may be
         NewChat();
         window.localStorage.setItem("group", JSON.stringify(newGroupInfo));
-        router.push(
-          pathname +
-          "?" +
-          createMultipleQueryString([
-            { name: "group", value: newGroupInfo?._id },
-            { name: "chat", value: "new" },
-          ])
-        );
+        // router.push(
+        //   pathname +
+        //   "?" +
+        //   createMultipleQueryString([
+        //     { name: "group", value: newGroupInfo?._id },
+        //     { name: "chat", value: "new" },
+        //   ])
+        // );
+        router.push(pathname);
       })
       .catch((error) => {
         console.log(error);
@@ -272,12 +292,13 @@ const Workspace = ({
           if (firstChat) {
             dispatch(setActiveChat(firstChat));
             getHistoryDetail(firstChat, "text");
-            router.push(
-              "/?" +
-              createMultipleQueryString([
-                { name: "chat", value: firstChat?.id ?? "new" },
-              ])
-            );
+            // router.push(
+            //   "/?" +
+            //   createMultipleQueryString([
+            //     { name: "chat", value: firstChat?.id ?? "new" },
+            //   ])
+            // );
+            router.push("/");
           }
         }
       }
@@ -373,23 +394,31 @@ const Workspace = ({
       });
   };
 
-  const DropdownHeader = ({ isOpen, toggle }) => (
+  const DropdownHeader = ({ isOpen }) => (
     <>
       <div
-        onClick={toggle}
         className="flex w-full items-center gap-x-2 cursor-pointer select-none"
       >
-       {activeWorkspace?.logo_url?<Avatar
-          className="w-6 h-6"
-          src={activeWorkspace?.logo_url}
-        />: <Avatar
-          className="w-6 h-6"
-          name={activeWorkspace?.name?.[0]?.toUpperCase() || ''}
-        />}
+        {activeWorkspace?.logo_url ? (
+          <Avatar className="w-6 h-6" src={activeWorkspace?.logo_url} />
+        ) : (
+          <Avatar
+            className="w-6 h-6"
+            name={activeWorkspace?.name?.[0]?.toUpperCase() || ""}
+          />
+        )}
         <span className="flex items-center gap-x-2 text-[#ffffff] 4k:!text-[26px] text-[14.95px] font-helvetica font-medium">
           {activeWorkspaceName}
         </span>
-        <Image src="/svg/chevronDown.svg"  alt="model-img" width={'4k' ? 13.33:7} height={'4k' ? 8:4} className={`h-[4px] w-[7px] 4k:h-[8px] 4k:w-[13.33px] text-[#D2D2D2] ${isOpen ? "rotate-180" : "rotate-0"}`} />
+        <Image
+          src="/svg/chevronDown.svg"
+          alt="model-img"
+          width={"4k" ? 13.33 : 7}
+          height={"4k" ? 8 : 4}
+          className={`h-[4px] w-[7px] 4k:h-[8px] 4k:w-[13.33px] text-[#D2D2D2] ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
       </div>
     </>
   );
@@ -400,10 +429,31 @@ const Workspace = ({
     dispatch(setSharedChatsSearchValue(""));
   };
 
+  const handleLeaveWorkpsace = (workspaceData) => {
+    try {
+      const data = { workspace_id:workspaceData?._id, member_id: auth?.user?.userID };
+      RemoveMember(data)
+        .unwrap()
+        .then((response) => {
+          if(workspaces.length >0){
+            updateCurrentWorkspace(null, workspaces[0]);
+          }
+          refetch();
+          toast.success(response);
+        })
+        .catch((error) => {
+          if (error?.data?.message) {
+            toast.error(response?.message);
+          }
+        })
+    } catch (error) {
+      console.log("🚀 ~ handleLeaveWorkpsace ~ error:", error);
+    }
+  };
   return (
     <>
       <div className="relative inline-block text-left">
-        <DropdownHeader isOpen={isDropdownOpen} toggle={handleToggleDropdown} />
+        <DropdownHeader isOpen={isDropdownOpen} />
         <Transition
           as={Fragment}
           enter="transition ease-out duration-100"
@@ -413,14 +463,14 @@ const Workspace = ({
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
           show={isDropdownOpen}
-          ref={workspaceMenuContainerRef}
+          // ref={workspaceMenuContainerRef}
         >
-          <div className="absolute right-0 left-0 z-50 mt-2 origin-top-right rounded-[12px] bg-[#121212] overflow-hidden min-w-[312px] w-full trasnsition-card">
+          <div className="absolute right-0 left-[-6px] z-50 mt-2 origin-top-right rounded-[12px] bg-[#121212] overflow-hidden min-w-[312px] w-full trasnsition-card">
             <div className="py-0 trasnsition-card">
               <div className="max-h-[270px] h-full overflow-y-auto p-2">
                 {workspaces &&
                   workspaces?.map((workspace, index) => (
-                    <div key={`workspace-${index}`} >
+                    <div key={`workspace-${index}`}>
                       <a
                         href="#"
                         className="text-gray-700 px-1.5 py-1.5 flex flex-row border-[#313535] items-center gap-3 hover:bg-[#2F2F2F] rounded-lg"
@@ -435,10 +485,11 @@ const Workspace = ({
                           src={workspace?.logo_url}
                           name={workspace?.name[0]?.toUpperCase()}
                           classNames={{
-                            base: `w-9 h-9 max-msm:w-12 max-msm:h-12 ${workspace?.logo_url
-                              ? "bg-transparent"
-                              : "bg-radial-gradient"
-                              } flex flex-row items-center justify-center shrink-0`,
+                            base: `w-9 h-9 max-msm:w-12 max-msm:h-12 ${
+                              workspace?.logo_url
+                                ? "bg-transparent"
+                                : "bg-radial-gradient"
+                            } flex flex-row items-center justify-center shrink-0`,
                           }}
                         />
                         <div className="w-full">
@@ -457,52 +508,70 @@ const Workspace = ({
                               >
                                 <DropdownTrigger>
                                   <div>
-                                    {workspace.user_id === auth?.user?.userID && (
-                                      <Moreicon />
-                                    )}
+                                    <Moreicon />
                                   </div>
                                 </DropdownTrigger>
-                                <DropdownMenu classNames={{ base: "p-0" }}>
-                                  <DropdownItem
-                                    className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
-                                    onPress={() =>
-                                      UserRoleInWorkspace(workspace, "edit")
-                                    }
-                                    startContent={
-                                      <>
-                                        <Settingicon />
-                                      </>
-                                    }
-                                  >
-                                    <p className="text-white text-sm flex items-center font-normal gap-[11px]">{`Settings`}</p>
-                                  </DropdownItem>
-                                  <DropdownItem
-                                    className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
-                                    onPress={() =>
-                                      UserRoleInWorkspace(workspace, "edit")
-                                    }
-                                    startContent={
-                                      <>
-                                        <Inviteicon />
-                                      </>
-                                    }
-                                  >
-                                    <p className="text-white text-sm flex items-center font-normal gap-[11px]">{`Invite members`}</p>
-                                  </DropdownItem>
-                                  <DropdownItem
-                                    className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
-                                    onPress={() =>
-                                      UserRoleInWorkspace(workspace, "delete")
-                                    }
-                                    startContent={
-                                      <>
-                                        <Trashicon className="-left-[1px] relative" />
-                                      </>
-                                    }
-                                  >
-                                    <p className="text-[#E54637] text-sm flex items-center font-normal gap-[11px]">{`Delete`}</p>
-                                  </DropdownItem>
-                                </DropdownMenu>
+                                {workspace.user_id === auth?.user?.userID ? (
+                                  <DropdownMenu classNames={{ base: "p-0" }}>
+                                    <DropdownItem
+                                      className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
+                                      onPress={() =>
+                                        UserRoleInWorkspace(workspace, "edit")
+                                      }
+                                      startContent={
+                                        <>
+                                          <Settingicon />
+                                        </>
+                                      }
+                                    >
+                                      <p className="text-white text-sm flex items-center font-normal gap-[11px]">{`Settings`}</p>
+                                    </DropdownItem>
+                                    <DropdownItem
+                                      className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
+                                      onPress={() =>
+                                        UserRoleInWorkspace(workspace, "edit")
+                                      }
+                                      startContent={
+                                        <>
+                                          <Inviteicon />
+                                        </>
+                                      }
+                                    >
+                                      <p className="text-white text-sm flex items-center font-normal gap-[11px]">{`Invite members`}</p>
+                                    </DropdownItem>
+                                    <DropdownItem
+                                      className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
+                                      onPress={() =>
+                                        UserRoleInWorkspace(workspace, "delete")
+                                      }
+                                      startContent={
+                                        <>
+                                          <Trashicon className="-left-[1px] relative" />
+                                        </>
+                                      }
+                                    >
+                                      <p className="text-[#E54637] text-sm flex items-center font-normal gap-[11px]">{`Delete`}</p>
+                                    </DropdownItem>
+                                  </DropdownMenu>
+                                ) : (
+                                  <DropdownMenu classNames={{ base: "p-0" }}>
+                                    <DropdownItem
+                                      className="px-2.5 py-2 data-[hover=true]:bg-[#505050]"
+                                      onPress={() =>
+                                        handleLeaveWorkpsace(
+                                          workspace
+                                        )
+                                      }
+                                      startContent={
+                                        <>
+                                          <UserMinusIcon className="-left-[1px] relative w-5 text-[#E54637]"/>
+                                        </>
+                                      }
+                                    >
+                                      <p className="text-[#E54637] text-sm flex items-center font-normal gap-[11px]">{`Leave workspace`}</p>
+                                    </DropdownItem>
+                                  </DropdownMenu>
+                                )}
                               </Dropdown>
                             )}
                           </div>

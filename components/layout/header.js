@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Tooltip, Button } from "@nextui-org/react";
+import { Tooltip, Button, Badge, User } from "@nextui-org/react";
 import Image from "next/image";
 import EarthIcon from "@/app/assets/svg/earth.svg";
 import UserIcon from "@/app/assets/svg/user.svg";
@@ -22,10 +22,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   useAccessSharedChatWithLinkMutation,
   useAccessSharedWorkspaceWithLinkMutation,
+  useGetUnreadMessagesCountQuery,
+  useGetUserQuery,
 } from "@/app/lib/features/chat/chatApi";
 import toast from "react-hot-toast";
 import SERACHICON from "@/app/assets/svg/topbar_search_icon.svg";
 import USERICON from "@/app/assets/svg/topbar_user_icon.svg";
+import ToglTutorialPopup from "../chat/typedChatComponents/ToglTutorialPopup";
+import useBoolean from "@/app/hooks/useBoolean";
+import NotificationIcon from "@/app/assets/svg/bell.svg";
+import NotificationCloseIcon from "@/app/assets/svg/NotificationCloseIcon.svg";
+import NotificationDrawer from "../notification/NotificationDrawer";
 
 const Header = ({
   setUserActive,
@@ -38,6 +45,8 @@ const Header = ({
   settingModelStatus,
   auth,
   setActiveWorkspace,
+  showTutorialModel,
+  setShowTutorialModel,
 }) => {
   const activeChat = useAppSelector((state) => state.chat.activeChat);
   const activeGroup = useAppSelector((state) => state.group.currentActiveGroup);
@@ -53,48 +62,74 @@ const Header = ({
   const [AccessSharedChatWithLink] = useAccessSharedChatWithLinkMutation();
   const [AccessSharedWorkspaceWithLink] =
     useAccessSharedWorkspaceWithLinkMutation();
-  const [currentHighlightIndex, setCurrentHighlightIndex] = useState(-1)
-  const [highlights, setHighlights] = useState([])
+  const [currentHighlightIndex, setCurrentHighlightIndex] = useState(-1);
+  const [highlights, setHighlights] = useState([]);
 
   const [isShowSearchChats, setIsShowSearchChats] = useState(false);
-
+  const {
+    value: shouldShowNotificationMenu,
+    toggle: toggleShowNotificationMenu,
+    setFalse: closeShowNotificationMenu,
+  } = useBoolean(false);
+  const notificationMenuContainerRef = useRef();
+  useOnClickOutside(notificationMenuContainerRef, () =>
+    closeShowNotificationMenu()
+  );
+  const {
+    data: getUnreadMessagesCountData,
+    isError: getUnreadMessagesCountIsError,
+    refetch,
+  } = useGetUnreadMessagesCountQuery(
+    {},
+    { skip: !auth?.user?.email || !auth?.user?.fullname }
+  );
+  const { data: getUserData, isLoading: getUserLoading } = useGetUserQuery(
+    { email: auth?.user?.email },
+    { skip: !(auth?.user?.email && auth?.user?.fullname) }
+  );
   const resetHighlights = (chatContainer) => {
-    chatContainer.querySelectorAll('.highlight').forEach((highlight) => {
+    chatContainer.querySelectorAll(".highlight").forEach((highlight) => {
       const parent = highlight.parentNode;
-      parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+      parent.replaceChild(
+        document.createTextNode(highlight.textContent),
+        highlight
+      );
       parent.normalize();
     });
-    setHighlights([])
+    setHighlights([]);
     setCurrentHighlightIndex(-1);
   };
 
   useOnClickOutside(searChChatContainerRef, () => {
-    setIsShowSearchChats(false)
-    const chatContainer = document.querySelector('.chat-container');
-    resetHighlights(chatContainer)
+    setIsShowSearchChats(false);
+    const chatContainer = document.querySelector(".chat-container");
+    resetHighlights(chatContainer);
   });
   const router = useRouter();
-
 
   const HandleFindTextInChat = () => {
     // const result = window?.find(searchChatValue);
     // Clear previous highlights
-    const searchValue = searchChatValue; 
+    const searchValue = searchChatValue;
     if (!searchValue) return;
 
-    const chatContainer = document.querySelector('.chat-container');
+    const chatContainer = document.querySelector(".chat-container");
     if (!chatContainer) return;
-    resetHighlights(chatContainer)
-  
+    resetHighlights(chatContainer);
+
     const newHighlights = [];
 
-    const walker = document.createTreeWalker(chatContainer, NodeFilter.SHOW_TEXT, null);
+    const walker = document.createTreeWalker(
+      chatContainer,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
 
     while (walker.nextNode()) {
       const node = walker.currentNode;
       const textContent = node.textContent;
 
-      const regex = new RegExp(searchValue, 'gi');
+      const regex = new RegExp(searchValue, "gi");
       const matches = [...textContent.matchAll(regex)];
 
       if (matches.length > 0) {
@@ -106,15 +141,16 @@ const Header = ({
 
           const beforeMatch = textContent.slice(currentIndex, matchStart);
 
-          const highlight = document.createElement('span');
-          highlight.className = 'highlight';
-          highlight.style.backgroundColor = 'yellow';
+          const highlight = document.createElement("span");
+          highlight.className = "highlight";
+          highlight.style.backgroundColor = "yellow";
           highlight.textContent = matchText;
 
           const parent = node.parentNode;
-          if (beforeMatch) parent.insertBefore(document.createTextNode(beforeMatch), node);
+          if (beforeMatch)
+            parent.insertBefore(document.createTextNode(beforeMatch), node);
           parent.insertBefore(highlight, node);
-          newHighlights.push(highlight); 
+          newHighlights.push(highlight);
           currentIndex = matchStart + matchText.length;
         });
 
@@ -126,11 +162,11 @@ const Header = ({
         }
       }
     }
-    setHighlights(newHighlights)
+    setHighlights(newHighlights);
 
     if (newHighlights.length > 0) {
       const newCurrentHighlightIndex = 0;
-      setCurrentHighlightIndex(newCurrentHighlightIndex)
+      setCurrentHighlightIndex(newCurrentHighlightIndex);
       scrollToHighlight(newCurrentHighlightIndex);
     }
   };
@@ -154,8 +190,8 @@ const Header = ({
   const handleToggle = (e) => {
     e?.preventDefault();
     setIsShowSearchChats((prev) => !prev);
-    if(searchChatValue){
-      HandleFindTextInChat()
+    if (searchChatValue) {
+      HandleFindTextInChat();
     }
   };
 
@@ -181,12 +217,13 @@ const Header = ({
             ? searchParams.get("permission_type")
             : "",
         };
-        const _from = searchParams.get("workspace")
-          ? searchParams.get("workspace")
-          : "";
+        // const _from = localStorage.getItem('workspace_id')
+        //   ? localStorage.getItem('workspace_id')
+        //   : "";
+        const _from = searchParams.get("share_chat");
         const APIName = _from
-          ? AccessSharedWorkspaceWithLink
-          : AccessSharedChatWithLink;
+          ? AccessSharedChatWithLink
+          : AccessSharedWorkspaceWithLink;
         APIName(payload)
           .unwrap()
           .then((res) => {
@@ -209,103 +246,119 @@ const Header = ({
 
   const goToPreviousHighlight = () => {
     if (highlights.length === 0) return;
-    const newCurrentHighlightIndex = (currentHighlightIndex - 1 + highlights.length) % highlights.length;
-    setCurrentHighlightIndex(newCurrentHighlightIndex)
+    const newCurrentHighlightIndex =
+      (currentHighlightIndex - 1 + highlights.length) % highlights.length;
+    setCurrentHighlightIndex(newCurrentHighlightIndex);
     scrollToHighlight(newCurrentHighlightIndex);
   };
 
   const scrollToHighlight = (index) => {
-    const currentHighlights = highlights
+    const currentHighlights = highlights;
     if (currentHighlights[index]) {
-      currentHighlights.forEach((el, i) => el.classList.toggle('active-highlight', i === index));
-      currentHighlights[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      currentHighlights.forEach((el, i) =>
+        el.classList.toggle("active-highlight", i === index)
+      );
+      currentHighlights[index].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     }
   };
 
   const goToNextHighlight = () => {
     if (highlights.length === 0) return;
-    const newCurrentHighlightIndex = (currentHighlightIndex + 1) % highlights.length;
-    setCurrentHighlightIndex(newCurrentHighlightIndex)
+    const newCurrentHighlightIndex =
+      (currentHighlightIndex + 1) % highlights.length;
+    setCurrentHighlightIndex(newCurrentHighlightIndex);
     scrollToHighlight(newCurrentHighlightIndex);
   };
 
   return (
     <>
-      <div className='flex justify-between px-[12px] max-mlg:px-0 py-[14px] items-center'>
-        <div className='flex items-center gap-1.5 text-[12.393px]	text-[E9E9E9] font-helvetica font-medium w-full truncate capitalize'>
-          <p className='cursor-pointer ml-0.5 !text-[#E9E9E9] font-medium'>
+      <div className="flex justify-between px-[12px] max-mlg:px-0 py-[14px] items-center">
+        <div className="flex items-center gap-1.5 text-[12.393px]	text-[E9E9E9] font-helvetica font-medium w-full truncate capitalize">
+          <p className="cursor-pointer ml-0.5 !text-[#E9E9E9] font-medium">
             {activeGroup?.name && `${activeGroup?.name}`}
           </p>
-          <span className='h-[2.656px] w-[2.656px] rounded-full bg-[#D9D9D9] mx-0.5' />
-          <p className='cursor-pointer !text-[#E9E9E9] font-medium'>
+          <span className="h-[2.656px] w-[2.656px] rounded-full bg-[#D9D9D9] mx-0.5" />
+          <p className="cursor-pointer !text-[#E9E9E9] font-medium">
             {activeChat?.title ? activeChat?.title : "New Chat"}
           </p>
         </div>
-
-        {auth && auth?.user && auth?.user?.email ? (
-          <div className='flex flex-row gap-4'>
-            <div as='div' className='relative inline-block text-left'>
-              <div className='flex items-center h-full'>
+        {/* <div
+          className="mr-5 cursor-pointer"
+          onClick={() => setShowTutorialModel(true)}
+        >
+          <Image
+            src={"svg/info.svg"}
+            width={25}
+            height={25}
+            alt="View Details"
+          />
+        </div> */}
+        {/* {auth && auth?.user && auth?.user?.email ? (
+          <div className="flex flex-row gap-4">
+            <div as="div" className="relative inline-block text-left">
+              <div className="flex items-center h-full">
                 <DropdownHeader toggle={handleToggle} />
               </div>
               <Transition
                 as={Fragment}
-                enter='transition ease-out duration-100'
-                enterFrom='transform opacity-0 scale-95'
-                enterTo='transform opacity-100 scale-100'
-                leave='transition ease-in duration-75'
-                leaveFrom='transform opacity-100 scale-100'
-                leaveTo='transform opacity-0 scale-95'
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
                 show={isShowSearchChats}
                 ref={searChChatContainerRef}
               >
-                <div className='absolute top-10 -right-2.5 z-50 origin-top-right rounded-[24px] bg-[#232323] min-w-[352px]'>
-                  <div className='flex flex-row items-center gap-3 h-[52px] justify-between pl-[15px]'>
-                    {/* <div className="">
+                <div className="absolute top-10 -right-2.5 z-50 origin-top-right rounded-[24px] bg-[#232323] min-w-[352px]">
+                  <div className="flex flex-row items-center gap-3 h-[52px] justify-between pl-[15px]"> */}
+        {/* <div className="">
                       <p className="text-[#C6C6C6] font-medium font-helvetica text-[17px] whitespace-nowrap">
                         6 matches
                       </p>
                     </div> */}
-                    <div className='flex items-center'>
-                      <button onClick={goToNextHighlight}                      >
+        {/* <div className="flex items-center">
+                      <button onClick={goToNextHighlight}>
                         <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='none'
-                          viewBox='0 0 24 24'
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
                           strokeWidth={2}
-                          stroke='#C6C6C6'
-                          className='size-6'
+                          stroke="#C6C6C6"
+                          className="size-6"
                         >
                           <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            d='m19.5 8.25-7.5 7.5-7.5-7.5'
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m19.5 8.25-7.5 7.5-7.5-7.5"
                           />
                         </svg>
                       </button>
-                      <button
-                        onClick={goToPreviousHighlight}>
+                      <button onClick={goToPreviousHighlight}>
                         <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='none'
-                          viewBox='0 0 24 24'
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
                           strokeWidth={2}
-                          stroke='#C6C6C6'
-                          className='size-6'
+                          stroke="#C6C6C6"
+                          className="size-6"
                         >
                           <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            d='m4.5 15.75 7.5-7.5 7.5 7.5'
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m4.5 15.75 7.5-7.5 7.5 7.5"
                           />
                         </svg>
                       </button>
                     </div>
-                    <div className='h-[52px] w-72'>
+                    <div className="h-[52px] w-72">
                       <Input
-                        type='text'
-                        placeholder='Search'
-                        radius='full'
+                        type="text"
+                        placeholder="Search"
+                        radius="full"
                         classNames={{
                           inputWrapper:
                             "!h-[52px] !py-0 rounded-tl-none rounded-tr-full rounded-br-full rounded-bl-none group-data-[focus-visible=true]:!ring-0 group-data-[focus-visible=true]:!ring-transparent group-data-[focus-visible=true]:!ring-offset-0 group-data-[focus-visible=true]:!ring-offset-transparent data-[hover=true]:!bg-[#272727]",
@@ -340,9 +393,9 @@ const Header = ({
             </div>
             {activeChat?.id ? (
               <Tooltip
-                content={<p className='text-[#FFF]'>Share Chat</p>}
+                content={<p className="text-[#FFF]">Share Chat</p>}
                 showArrow
-                placement='bottom'
+                placement="bottom"
                 delay={0}
                 closeDelay={0}
                 classNames={{
@@ -378,15 +431,15 @@ const Header = ({
                       chat_id: activeChat?.id,
                     })
                   }
-                >
-                  {/* <Image
+                > */}
+        {/* <Image
                   alt="users-icon"
                   src={UsersIcon}
                   width={"100%"}
                   height={"100%"}
                   objectFit={"contain"}
                 /> */}
-                  <USERICON />
+        {/* <USERICON />
                 </div>
               </Tooltip>
             ) : (
@@ -397,20 +450,95 @@ const Header = ({
                     duration: 2000,
                   })
                 }
-              >
-                {/* <Image
+              > */}
+        {/* <Image
                 alt="users-icon"
                 src={UsersIcon}
                 width={"100%"}
                 height={"100%"}
                 objectFit={"contain"}
               /> */}
-                <USERICON />
+        {/* <USERICON />
               </div>
             )}
           </div>
-        ) : null}
+        ) : null} */}
+        <div className="flex space-x-4 items-center mr-[10px]">
+          <div className=" cursor-pointer flex items-center gap-3.5">
+            { showTutorialModel ? 
+            <Image
+              src={"svg/info.svg"}
+              width={25}
+              height={25}
+              alt="View Details"
+              onClick={() => setShowTutorialModel(true)}
+            /> :
+            <Image
+              src={"svg/Information-circle-gray.svg"}
+              width={25}
+              height={25}
+              alt="View Details"
+              onClick={() => setShowTutorialModel(true)}
+            />}
+            {auth?.user?.email && (
+              <>
+                {shouldShowNotificationMenu ? (
+                  <NotificationCloseIcon
+                    className="mr-1 cursor-pointer"
+                    onClick={toggleShowNotificationMenu}
+                  />
+                ) : (
+                  <Badge
+                    onClick={toggleShowNotificationMenu}
+                    color="primary"
+                    size="sm"
+                    classNames={{ badge: "!border-0 cursor-pointer" }}
+                    content={getUnreadMessagesCountData?.total_unread_count}
+                    isInvisible={
+                      getUnreadMessagesCountData?.total_unread_count === 0
+                    }
+                    shape="circle"
+                  >
+                    <NotificationIcon
+                      className="mr-1 cursor-pointer"
+                      onClick={toggleShowNotificationMenu}
+                    />
+                  </Badge>
+                )}
+
+                {/* {getUserData?.data?.profile_picture_url ? (
+                  <Image
+                    src="svg/account.svg"
+                    width={35}
+                    height={35}
+                    style={{ width: "30px", height: "30px" }}
+                    alt="View Details"
+                    onClick={() => router.push("/profile")}
+                  />
+                ) : (
+                  <p className="  text-5xl text-[#E9ECEF] font-helvetica font-medium leading-normal">
+                    {getUserData?.data?.full_name?.at(0)?.toUpperCase()}
+                  </p>
+                )} */}
+                 <User
+                 onClick={() => router.push("/profile")}
+                    className="cursor-pointer"
+                    
+                    avatarProps={{
+                      src: getUserData?.data?.profile_picture_url,
+                      style: { height: 30, width: 30 },
+                    }}
+                  />
+              </>
+            )}
+          </div>
+        </div>
       </div>
+      <NotificationDrawer
+        shouldShowNotificationMenu={shouldShowNotificationMenu}
+        notificationMenuContainerRef={notificationMenuContainerRef}
+        closeShowNotificationMenu={closeShowNotificationMenu}
+      />
 
       {/* Share and Invite Model */}
       <ShareAndInviteModal

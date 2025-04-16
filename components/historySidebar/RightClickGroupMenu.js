@@ -108,7 +108,19 @@ const RightClickGroupMenu = ({
   return (
     <>
       <p
-        onClick={() => handleGroupClick(groupInfo)}
+      onDoubleClick={() =>
+        setAddOrEditGroup({
+          mode: "edit",
+          groupInfo: {
+            name: groupInfo?.name,
+            group_id: groupInfo?._id,
+          },
+        })
+      }
+        onClick={() => {
+          handleGroupClick(groupInfo);
+          localStorage.removeItem("activeChatLocalStorage");
+        }}
         onContextMenu={handleClick}
         className={`font-medium mb-0 ${
           activeGroup?._id === groupInfo?._id ? "text-white" : "text-[#E9E9E9]"
@@ -125,7 +137,7 @@ const RightClickGroupMenu = ({
         }}
       >
         <Menu
-          placement='left-start'
+          placement="left-start"
           open={activeGroupMenuId === groupInfo?._id}
           handler={() => handleCloseMenu(groupInfo)}
         >
@@ -146,34 +158,34 @@ const RightClickGroupMenu = ({
                   },
                 })
               }
-              className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'
+              className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center"
             >
               <div>
                 <RenameIcon />
               </div>
-              <div className='font-helvetica'>{"Rename"}</div>
+              <div className="font-helvetica">{"Rename"}</div>
             </MenuItem>
             {allGroupsList?.length > 0 ? (
-              <Menu placement='right-start' allowHover offset={15}>
+              <Menu placement="right-start" allowHover offset={15}>
                 <MenuHandler>
-                  <MenuItem className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'>
+                  <MenuItem className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center">
                     <div>
                       <MoveIcon />
                     </div>
-                    <div className='font-helvetica'>
+                    <div className="font-helvetica">
                       {"Move all chats to Group"}
                     </div>
                   </MenuItem>
                 </MenuHandler>
-                <MenuList className='bg-[#2F2F2F] border-0 text-white shadow-md p-1.5 z-[9999]'>
+                <MenuList className="bg-[#2F2F2F] border-0 text-white shadow-md p-1.5 z-[9999]">
                   {allGroupsList?.map((item, key) => (
                     <MenuItem
                       onClick={() => HandleMoveToAllChatToNewGroup(item?._id)}
                       key={key}
-                      className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'
+                      className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center"
                       disabled={activeGroup?._id === item?._id}
                     >
-                      <div className='text-white capitalize font-helvetica'>
+                      <div className="text-white capitalize font-helvetica">
                         {item.name}
                       </div>
                     </MenuItem>
@@ -181,40 +193,40 @@ const RightClickGroupMenu = ({
                 </MenuList>
               </Menu>
             ) : (
-              <MenuItem className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'>
+              <MenuItem className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center">
                 <div>
                   <MoveIcon />
                 </div>
-                <div className='font-helvetica'>{"Move to Group"}</div>
+                <div className="font-helvetica">{"Move to Group"}</div>
               </MenuItem>
             )}
             {allWorkSpacesDetails?.data?.length > 0 ? (
-              <Menu placement='right-start' allowHover offset={15}>
+              <Menu placement="right-start" allowHover offset={15}>
                 <MenuHandler>
-                  <MenuItem className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'>
+                  <MenuItem className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center">
                     <div>
                       <MoveIcon />
                     </div>
-                    <div className='font-helvetica'>{"Move to Workspace"}</div>
+                    <div className="font-helvetica">{"Move to Workspace"}</div>
                   </MenuItem>
                 </MenuHandler>
-                <MenuList className='bg-[#2F2F2F] border-0 text-white shadow-md p-1.5 z-[9999]'>
+                <MenuList className="bg-[#2F2F2F] border-0 text-white shadow-md p-1.5 z-[9999]">
                   {allWorkSpacesDetails?.data?.map((item, key) => (
                     <MenuItem
                       onClick={() =>
                         HandleMoveToWorkspace(groupInfo?._id, item?._id)
                       }
                       key={key}
-                      className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center px-2 py-1'
+                      className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center px-2 py-1"
                       disabled={activeWorkspace?._id === item?._id}
                     >
                       <Avatar
-                        className='h-8 w-8'
+                        className="h-8 w-8"
                         src={item?.logo_url}
                         showFallback
                       />
                       <div>
-                        <p className='font-bold text-white text-sm font-helvetica'>
+                        <p className="font-bold text-white text-sm font-helvetica">
                           {item?.name}
                         </p>
                         {/* <span className="font-medium text-xs text-[#818181] font-helvetica">{"Premium Plan 3 member"}</span> */}
@@ -224,11 +236,11 @@ const RightClickGroupMenu = ({
                 </MenuList>
               </Menu>
             ) : (
-              <MenuItem className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'>
+              <MenuItem className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center">
                 <div>
                   <MoveIcon />
                 </div>
-                <div className='font-helvetica'>{"Move to Workspace"}</div>
+                <div className="font-helvetica">{"Move to Workspace"}</div>
               </MenuItem>
             )}
             <MenuItem
@@ -239,12 +251,12 @@ const RightClickGroupMenu = ({
                   group_id: groupInfo?._id,
                 })
               }
-              className='flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center'
+              className="flex pt-2 gap-2 hover:bg-[#505050] cursor-pointer items-center"
             >
               <div>
                 <DeleteIcon />
               </div>
-              <div className='font-helvetica text-[#E54637]'>{"Delete"}</div>
+              <div className="font-helvetica text-[#E54637]">{"Delete"}</div>
             </MenuItem>
           </MenuList>
         </Menu>

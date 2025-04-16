@@ -10,6 +10,7 @@ import ChatHistoryList from "../historySidebar/ChatHistoryList";
 import {
   useGetHistoryByWorkspaceIdQuery,
   useGetUnreadMessagesCountQuery,
+  useGetUserQuery,
   useGetUsersSharedRoomHistoryQuery,
 } from "@/app/lib/features/chat/chatApi";
 import { useAppDispatch, useAppSelector } from "@/app/lib/hooks";
@@ -45,6 +46,9 @@ import { useResizable } from "react-resizable-layout";
 import { setSidebarSize } from "@/app/lib/features/SidebarResize/ResizeSlice";
 import ToastService from "../Toaster/toastService";
 import { Rnd } from "react-rnd";
+import ToglTutorialPopup from "../chat/typedChatComponents/ToglTutorialPopup";
+import { useBlurSideBar } from "../context/blurSideBarContext";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 
 const HistorySider = ({
   NewChat = () => {},
@@ -57,6 +61,8 @@ const HistorySider = ({
   setMessageModelType = () => {},
   navigateToMessageModel,
   setNavigateToMessageModel = () => {},
+  showTutorialModel,
+  setShowTutorialModel = () => {},
 }) => {
   const scrollableGroupContainerRef = useRef(null);
   const { toggleStatus, setToggleStatus } = useModelStatus();
@@ -67,6 +73,11 @@ const HistorySider = ({
   const [retryCount, setRetryCount] = useState(0);
   const [retryDelay, setRetryDelay] = useState(1000); // Initial delay in milliseconds
   const [wsRef, setWsRef] = useState(null);
+  const { blurSideBar, setBlurSideBar } = useBlurSideBar();
+  const [isDisconnected, setIsDisconnected] = useState(false);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const workspaceMenuContainerRef = useRef();
+  useOnClickOutside(workspaceMenuContainerRef, () => setDropdownOpen(false));
 
   const searchValue = useAppSelector(
     (state) => state.sheredChats.sharedChatsSearchValue
@@ -108,11 +119,28 @@ const HistorySider = ({
       ),
     }
   );
+  const { data: getUserData, isLoading: getUserLoading } = useGetUserQuery(
+    { email: auth?.user?.email },
+    { skip: !(auth?.user?.email && auth?.user?.fullname) }
+  );
   const dispatch = useAppDispatch();
 
-  const [height, setHeight] = useState(128); // initial height in pixels
-  const [maxHeight, setMaxHeight] = useState(200); // max height in pixels
+  const [height, setHeight] = useState(3008); // initial height in pixels
+  const [maxHeight, setMaxHeight] = useState(170); // max height in pixels
   const minHeight = 30; // min height in pixels
+
+  useEffect(() => {
+    // Check if running in a browser environment
+    if (typeof window !== "undefined") {
+      const showTutorialPopup = localStorage.getItem("showTutorialPopup");
+      const signup_process = localStorage.getItem("signup_process");
+      if (showTutorialPopup && !signup_process) {
+        setShowTutorialModel(true);
+      } else {
+        setShowTutorialModel(false); // Assume you want to set this to false if no data in localStorage
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpenShareChats) {
@@ -127,29 +155,29 @@ const HistorySider = ({
   ]);
 
   //Dynamically update slider limit
-  useEffect(() => {
-    const calculateMaxHeight = () => {
-      const element = document.getElementById("groups_height_calculation");
-      if (element) {
-        const totalHeight = Array.from(element.children).reduce(
-          (acc, child) => acc + child.getBoundingClientRect().height,
-          0
-        );
-  
-        setMaxHeight(Math.min(totalHeight, 200));
-      }
-    };
-  
-    calculateMaxHeight();
-  
-    const observer = new ResizeObserver(calculateMaxHeight);
-    const element = document.getElementById("groups_height_calculation");
-    if (element) observer.observe(element);
-  
-    return () => {
-      if (element) observer.disconnect();
-    };
-  }, []);
+  // useEffect(() => {
+  //   const calculateMaxHeight = () => {
+  //     const element = document.getElementById("groups_height_calculation");
+  //     if (element) {
+  //       const totalHeight = Array.from(element.children).reduce(
+  //         (acc, child) => acc + child.getBoundingClientRect().height,
+  //         0
+  //       );
+
+  //       setMaxHeight(Math.min(totalHeight, 200));
+  //     }
+  //   };
+
+  //   calculateMaxHeight();
+
+  //   const observer = new ResizeObserver(calculateMaxHeight);
+  //   const element = document.getElementById("groups_height_calculation");
+  //   if (element) observer.observe(element);
+
+  //   return () => {
+  //     if (element) observer.disconnect();
+  //   };
+  // }, []);
 
   useEffect(() => {
     const element = document.getElementById("groups_height_calculation");
@@ -236,7 +264,16 @@ const HistorySider = ({
   }, []);
 
   useEffect(() => {
-    if (activeChat?.id) getHistoryDetail(activeChat);
+    if (activeChat?.id) {
+      getHistoryDetail(activeChat);
+    } else {
+      const activeChatLocalStorage = localStorage.getItem(
+        "activeChatLocalStorage"
+      );
+      if (activeChatLocalStorage) {
+        getHistoryDetail(JSON.parse(activeChatLocalStorage));
+      }
+    }
   }, [activeChat]);
 
   useEffect(() => {
@@ -266,8 +303,12 @@ const HistorySider = ({
     }
   }, []);
 
-  const wsUrl = getWebSocketURL(auth?.user?.token);
+  // const wsUrl = getWebSocketURL(auth?.user?.token);
 
+  const wsUrl = useMemo(
+    () => (auth?.user?.userID ? getWebSocketURL(auth?.user?.token) : null),
+    [auth?.user?.userID]
+  );
   // const wsRef = useMemo(() => {
   //   // if (auth?.user?.email && auth?.user?.fullname) {
   //   if (auth?.user?.userID) {
@@ -294,8 +335,7 @@ const HistorySider = ({
 
       wsRef.onopen = () => {
         dispatch(setConnected(true));
-        setRetryCount(0); // Reset retry count on successful connection
-        setRetryDelay(1000); // Reset retry delay to initial value
+        setIsDisconnected(false);
       };
 
       wsRef.onmessage = (event) => {
@@ -306,13 +346,13 @@ const HistorySider = ({
       wsRef.onerror = (error) => {
         dispatch(setError(error));
         // Retry connection
-        handleReconnect();
+        handleDisconnect(); // Mark as disconnected
       };
 
       wsRef.onclose = () => {
         dispatch(setConnected(false));
         // Retry connection
-        handleReconnect();
+        handleDisconnect();
       };
 
       return () => {
@@ -323,24 +363,30 @@ const HistorySider = ({
     }
   }, [wsRef]);
 
+  const handleDisconnect = () => {
+    setIsDisconnected(true);
+  };
+
   const handleReconnect = () => {
-    if (retryCount < 10) {
-      // Max retry attempts
-      setTimeout(() => {
-        console.log(`Reconnecting... Attempt ${retryCount + 1}`);
-
-        // Increment retry delay (Exponential backoff)
-        setRetryDelay((prev) => prev * 2);
-        setRetryCount((prev) => prev + 1);
-
-        // Attempt to reconnect
-        const newWs = new WebSocket(wsUrl);
-        setWsRef(newWs);
-      }, retryDelay); // Retry after the delay
-    } else {
-      console.error("Max retry attempts reached");
+    if (isDisconnected && wsUrl) {
+      console.log("Reconnecting WebSocket due to user activity...");
+      const newWs = new WebSocket(wsUrl);
+      setWsRef(newWs);
+      setIsDisconnected(false); // Reset disconnect flag after attempting to reconnect
     }
   };
+  // Attach event listener for mouse movement to trigger reconnection
+  useEffect(() => {
+    if (isDisconnected) {
+      window.addEventListener("mousemove", handleReconnect);
+    } else {
+      window.removeEventListener("mousemove", handleReconnect);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleReconnect);
+    };
+  }, [isDisconnected]);
 
   const {
     value: shouldShowNotificationMenu,
@@ -519,72 +565,68 @@ const HistorySider = ({
     }
   };
 
+  const handleToggleDropdown = (e) => {
+    e.preventDefault(); // Prevent default to handle link behavior, if any.
+    e.stopPropagation(); // Prevent the event from bubbling up.
+    setDropdownOpen(!isDropdownOpen); // Directly use the current state to toggle
+  };
   return (
     <>
       <div
-        className={`flex flex-col min-w-[183px] max-w-[500px] 4k:max-w-[1000px] 4k:min-w-[300px] w-full fixed z-[9999] h-full bg-[#171717]`}
+        className={`flex flex-col min-w-[183px] max-w-[500px] 4k:max-w-[1000px] 4k:min-w-[300px] w-full fixed ${
+          blurSideBar ? "z-[9]" : "z-[9999]"
+        } h-full bg-[#171717]`}
         style={{ width: sidebarSize }}
       >
-        <div className='bg-[#202020] pt-4 !shadow-groupMenu mb-[20px] relative'>
+        <div className="bg-[#202020] pt-4 !shadow-groupMenu mb-[20px] relative">
           {isOpenShareChats ? (
-            <div className='flex justify-between items-center px-[12px]'>
+            <div className="flex justify-between items-center px-[12px]">
               <div
-                className='flex flex-row items-center gap-2 cursor-pointer'
+                className="flex flex-row items-center gap-2 cursor-pointer"
                 onClick={shareAndChatsInvitetHandler}
               >
                 <svg
-                  xmlns='http://www.w3.org/2000/svg'
+                  xmlns="http://www.w3.org/2000/svg"
                   height={25}
                   width={25}
-                  fill='none'
-                  viewBox='0 0 24 24'
+                  fill="none"
+                  viewBox="0 0 24 24"
                   strokeWidth={2}
-                  stroke='currentColor'
-                  className='size-6'
+                  stroke="currentColor"
+                  className="size-6"
                 >
                   <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    d='M15.75 19.5 8.25 12l7.5-7.5'
-                    stroke='#fff'
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 19.5 8.25 12l7.5-7.5"
+                    stroke="#fff"
                   />
                 </svg>
-                <p className='text-sm	text-white font-helvetica font-bold w-full'>{`Shared Chats`}</p>
+                <p className="text-sm	text-white font-helvetica font-bold w-full">{`Shared Chats`}</p>
               </div>
             </div>
           ) : (
-            <div className='flex justify-between items-center px-[12px]'>
-              <div className='flex flex-row'>
+            <div
+              className="flex justify-between items-center px-[12px] cursor-pointer"
+              ref={workspaceMenuContainerRef}
+              onClick={handleToggleDropdown}
+            >
+              <div className="flex flex-row">
                 {/* <ProfilePicture /> */}
                 <Workspace
                   NewChat={NewChat}
                   getHistoryDetail={getHistoryDetail}
                   setChatStatus={setChatStatus}
+                  isDropdownOpen={isDropdownOpen}
+                  setDropdownOpen={setDropdownOpen}
                 />
               </div>
-              {shouldShowNotificationMenu ? (
-                <NotificationCloseIcon className='mr-1 cursor-pointer' />
-              ) : (
-                <Badge
-                  onClick={toggleShowNotificationMenu}
-                  color='primary'
-                  size='md'
-                  classNames={{ badge: "!border-0 cursor-pointer" }}
-                  content={getUnreadMessagesCountData?.total_unread_count}
-                  isInvisible={
-                    !getUnreadMessagesCountData?.total_unread_count > 0
-                  }
-                  shape='circle'
-                >
-                  <NotificationIcon
-                    className='mr-1 cursor-pointer'
-                    onClick={toggleShowNotificationMenu}
-                  />
-                </Badge>
-              )}
+              <div>
+                <Bars3Icon className="text-[#D9D9D9] w-[20px] h-[20px] cursor-pointer" />
+              </div>
             </div>
           )}
-          <div className='flex flex-row gap-2 mt-[20px] max-msm:mt-0 mb-4 max-msm:ml-3 items-center h-[35px] px-[12px]'>
+          <div className="flex flex-row gap-2 mt-[20px] max-msm:mt-0 mb-4 max-msm:ml-3 items-center h-[35px] px-[12px]">
             <SidebarSearchBoxComponent />
           </div>
           {isOpenShareChats === false && (
@@ -612,8 +654,8 @@ const HistorySider = ({
                   ref={scrollableGroupContainerRef}
                   style={{
                     overflowY: "auto",
-                    height: "100%",
-                    paddingBottom: "12px",
+                    height: "102%",
+                    // paddingBottom: "12px",
                   }}
                 >
                   <SidebarCategory
@@ -621,6 +663,7 @@ const HistorySider = ({
                     scrollToBottom={scrollToBottom}
                     setHeight={setHeight}
                     overflow={overflow}
+                    height={height}
                   />
                 </div>
               </Rnd>
@@ -628,7 +671,7 @@ const HistorySider = ({
           )}
         </div>
         <div
-          className='overflow-auto chat-list-scrollbar pe-2 mb-28 py-[16px] px-[12px] pt-0'
+          className="overflow-auto chat-history-container chat-list-scrollbar pe-2 mb-28 py-[16px] px-[12px] pt-0"
           ref={chatListRef}
         >
           <ChatHistoryList
@@ -636,8 +679,11 @@ const HistorySider = ({
             NewChat={NewChat}
           />
         </div>
-        <SidebarMarketplaceLink overflowing={true} />
-        <SidebarFooterLinkComponents overflowing={true} />
+        {auth && auth?.user?.fullname && auth?.user?.email && (
+          <SidebarMarketplaceLink getUserData={getUserData} />
+        )}
+
+        <SidebarFooterLinkComponents getUserData={getUserData} />
 
         <SampleSplitter
           classNames={`absolute w-1 -right-1 h-screen cursor-col-resize`}
@@ -645,12 +691,18 @@ const HistorySider = ({
           {...fileDragBarProps}
         />
       </div>
-
+      {/* 
       <NotificationDrawer
         shouldShowNotificationMenu={shouldShowNotificationMenu}
         notificationMenuContainerRef={notificationMenuContainerRef}
-      />
+      /> */}
       <ToastService />
+      {showTutorialModel && (
+        <ToglTutorialPopup
+          isOpen={showTutorialModel}
+          setIsOpen={setShowTutorialModel}
+        />
+      )}
     </>
   );
 };

@@ -311,7 +311,7 @@ const ShareAndInviteModal = ({ isOpen, onOpenChange = () => {} }) => {
       .then((response) => {
         if (response.status === 200) {
           const { data } = response;
-          const url = `${window.location.origin}/?access_link=${data?.access_link}&permission_type=${data?.permission_type}`;
+          const url = `${window.location.origin}/?access_link=${data?.access_link}&permission_type=${data?.permission_type}&share_chat=true`;
           navigator.clipboard.writeText(url);
           toast.success("Access link copied successfully!");
           HandleModalClose();

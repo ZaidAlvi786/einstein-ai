@@ -31,6 +31,13 @@ import axiosInstance from "@/app/http/axios";
 import toast from "react-hot-toast";
 import ToastService from "../Toaster/toastService";
 
+export const ModelTypeLists = [
+  { key: "text", label: "Text" },
+  { key: "image", label: "Image" },
+  { key: "video", label: "Video" },
+  { key: "code", label: "Code" },
+];
+
 function CreateToolsModel({ open, setOpen }) {
   const fileInput = useRef();
   const fileInput1 = useRef();
@@ -77,6 +84,7 @@ function CreateToolsModel({ open, setOpen }) {
     },
     support_email: "",
     context_window: [],
+    model_type:["text"],
     tags: [],
     chat_model: "gpt4",
   });
@@ -119,6 +127,7 @@ function CreateToolsModel({ open, setOpen }) {
         category: tools?.category,
         price: price,
         chat_model: tools?.chat_model || "gpt4",
+        model_type:tools?.tool_type || "text",
         context_window: tools?.context_window || [],
         description: tools?.description || "",
         freeTrialCredits: [
@@ -196,6 +205,8 @@ function CreateToolsModel({ open, setOpen }) {
       .required("Short description is required")
       .max(250, "Intro text cannot exceed 250 characters"),
     url: Yup.string().url("Must be a valid URL").required("URL is required"),
+     model_type:Yup.array()
+        .min(1, "select Atleast one model type"),
     preview_url: Yup.array()
       .min(1, "At least one preview image is required.")
       .of(Yup.string().url("Must be a valid URL")),
@@ -234,18 +245,36 @@ function CreateToolsModel({ open, setOpen }) {
       .email("Must be a valid email")
       .required("Support email is required"),
 
-    freeTrialCredits: Yup.array().of(
-      Yup.object({
-        value: Yup.number().when([], {
-          is: () => isFree,
-          then: (schema) =>
-            schema
-              .required("Value is required")
-              .min(0.0001, "Value must be greater than 0"),
-          otherwise: (schema) => schema,
-        }),
-      })
-    ),
+      freeTrialCredits: Yup.array().of(
+        Yup.object({
+          value: Yup.number()
+            .transform((value, originalValue) =>
+              typeof originalValue === "string" && originalValue.trim() === ""
+                ? undefined
+                : Number(originalValue)
+            )
+            .when([], {
+              is: () => isFree,
+              then: (schema) =>
+                schema
+                  .required("Value is required")
+                  .min(1, "Value must be greater than 0")
+                  .test(
+                    "is-valid-number",
+                    "decimal values are not allowed",
+                    function (val) {
+                      const { type } = this.parent;
+                      if (type === "query_basis") {
+                        return Number.isInteger(val); 
+                      }
+                      return true;
+                    }
+                  ),
+              otherwise: (schema) => schema.notRequired(),
+            }),
+          type: Yup.string().oneOf(["cost_basis", "query_basis"]).required(),
+        })
+      ),
     price_per_use: Yup.number().when([], {
       is: () => isPerUse,
       then: (schema) =>
@@ -381,6 +410,7 @@ function CreateToolsModel({ open, setOpen }) {
         },
         is_public: true,
         tool_id: open?.tool_details?.id || "",
+        tool_type: values.model_type,
       };
 
       if (open?.category !== "model") {
@@ -701,6 +731,63 @@ function CreateToolsModel({ open, setOpen }) {
                 }
               />
             </div>
+                {/* Model Type Selection */}
+
+  <div className="flex w-full flex-wrap md:flex-nowrap mb-[22px] relative">
+  
+    <Select
+      // className="max-w-xs"
+      label={
+        <span className="text-[15px] font-bold font-roboto">
+          Select Model Type
+        </span>
+      }
+      labelPlacement="outside"
+      // placeholder="Text"
+      selectionMode="multiple"
+      classNames={{
+        trigger:
+          "bg-transparent border border-[#424242] !min-h-[38px] 4k:min-h-[173.302px] data-[hover=true]:bg-transparent",
+        errorMessage: "text-sm font-medium",
+        value: `!font-normal !text-[16px] 4k:!text-[17.969px] ${
+          formik.values.model_type
+            ? "text-white"
+            : "text-[#9B9B9B]"
+        }`,
+      }}
+      listboxProps={{
+        itemClasses: {
+          base: "data-[hover=true]:bg-[#383838] data-[hover=true]:text-white text-white",
+        },
+      }}
+      popoverProps={{
+        classNames: {
+          content: "bg-[#2F2F2F] px-1 shadow-none",
+        },
+        className: "bg-transparent",
+      }}
+      name="model_type"
+      // items={usersubscribedModels}
+      radius="sm"
+      selectedKeys={formik.values.model_type}
+  onSelectionChange={(keys) => {
+    formik.setFieldValue("model_type", Array.from(keys));
+  }}
+      isInvalid={
+        formik.errors.model_type && formik.touched.model_type
+      }
+      errorMessage={
+        formik.errors.model_type &&
+        formik.touched.model_type &&
+        formik.errors.model_type
+      }
+    >
+      {ModelTypeLists.map((model) => (
+        <SelectItem key={model.key}>{model.label}</SelectItem>
+      ))}
+    </Select>
+    </div>
+
             <div className="flex w-full flex-wrap md:flex-nowrap gap-4 relative mb-[9px]">
               <div className="absolute right-0 top-0 text-[#9B9B9B] text-[14px] ">
                 max. 1500 characters
@@ -894,7 +981,7 @@ function CreateToolsModel({ open, setOpen }) {
                           <Input
                             type="number"
                             startContent={
-                              <span className="text-white">{`$`}</span>
+                              <span className="text-white">{formik.values.freeTrialCredits?.some((e) => e.type === "cost_basis") ? "$" : ""}</span>
                             }
                             placeholder="Enter Credits"
                             classNames={{

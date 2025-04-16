@@ -19,7 +19,13 @@ import { Tooltip } from "@nextui-org/react";
 import { setActiveChat } from "@/app/lib/features/chat/chatSlice";
 import toast from "react-hot-toast";
 
-const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
+const SidebarCategory = ({
+  NewChat,
+  scrollToBottom,
+  setHeight,
+  overflow,
+  height,
+}) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const [AddGroup] = useAddGroupMutation();
@@ -65,24 +71,45 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
 
     if (data?.data.length > 0) {
       // set group container initial height
-      setHeight(data?.data.length * 38);
+      setHeight(data?.data.length * 28);
     }
   }, [data, isLoading, isError]);
 
-  const createQueryString = useCallback(
-    (name, value) => {
-      const params = new URLSearchParams(searchParams);
-      params.set(name, value);
+  useEffect(() => {
+    if (addOrEditGroup.mode === "add") {
+      setHeight(height + 30);
+    }
+  }, [addOrEditGroup]);
 
-      return params.toString();
-    },
-    [searchParams]
-  );
+  // const createQueryString = useCallback(
+  //   (name, value) => {
+  //     const params = new URLSearchParams(searchParams);
+  //     params.set(name, value);
+
+  //     return params.toString();
+  //   },
+  //   [searchParams]
+  // );
+
+  
+    // const HandleClickOnGroup = (groupInfo) => {
+    //   dispatch(setCurrentActiveGroup(groupInfo));
+    //   router.push(pathname + "?" + createQueryString("group", groupInfo?._id));
+    //   window.localStorage.setItem("group", JSON.stringify(groupInfo));
+    // };
+
+  const createQueryStringWithoutGroup = useCallback(() => {
+    const params = new URLSearchParams(searchParams);
+  
+    // Remove the 'group' parameter if it exists (In any issue follow above commented function)
+    params.delete("group");
+  
+    return params.toString();
+  }, [searchParams]);
 
   const HandleClickOnGroup = (groupInfo) => {
     dispatch(setCurrentActiveGroup(groupInfo));
-    router.push(pathname + "?" + createQueryString("group", groupInfo?._id));
-    window.localStorage.setItem("group", JSON.stringify(groupInfo));
+    router.push(pathname + "?" + createQueryStringWithoutGroup());
   };
 
   useEffect(() => {
@@ -125,16 +152,26 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
       })
     );
     dispatch(setActiveChat({}));
+    localStorage.removeItem("activeChatLocalStorage"); 
     // if (auth.user.price > 0) {
     NewChat();
-    router.push(
-      "/" +
-        "?" +
-        createMultipleQueryString({
-          chat: "new",
-          group: groupInfo?._id ?? groupInfo?.id,
-        })
-    );
+    // router.push(
+    //   "/" +
+    //     "?" +
+    //     createMultipleQueryString({
+    //       chat: "new",
+    //       group: groupInfo?._id ?? groupInfo?.id,
+    //     })
+    // );
+    router.push("/");
+    // router.push(
+    //   "/" +
+    //     "?" +
+    //     createMultipleQueryString({
+    //       group: groupInfo?._id ?? groupInfo?.id,
+    //     })
+    // );
+    
     // } else {
     //   toast.error("You don't have enough credits to make this request. Please top up your account.");
     // }
@@ -205,7 +242,7 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
 
   return (
     <>
-      <ul className='flex flex-col gap-[7px]'>
+      <ul className="flex flex-col gap-[7px]">
         {groupData &&
           groupData?.map((item, index) => (
             <React.Fragment key={index}>
@@ -233,7 +270,7 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
                   onDragEnd={drop}
                   draggable
                 >
-                  <div className='flex justify-between items-center w-full'>
+                  <div className="flex justify-between items-center w-full">
                     <RightClickGroupMenu
                       DND={{ dragStart, dragEnter, index }}
                       HandleClickOnGroup={HandleClickOnGroupMenu}
@@ -241,10 +278,10 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
                       allGroupsList={data?.data}
                       setAddOrEditGroup={setAddOrEditGroup}
                     />
-                    <div className='rounded text-sm text-[#E9E9E9] font-medium flex gap-1 justify-center items-center'>
+                    <div className="rounded text-sm text-[#E9E9E9] font-medium flex gap-1 justify-center items-center">
                       <Tooltip
                         content={"New Chat"}
-                        placement='left'
+                        placement="left"
                         delay={0}
                         closeDelay={0}
                         classNames={{
@@ -271,14 +308,17 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
                         }}
                         offset={10}
                       >
-                        <div className='hover:cursor-pointer flex-shrink-0 4k:h-[34px] 4k:w-[34px] w-[19.22px] h-[19.18px]'>
+                        <div className="hover:cursor-pointer flex-shrink-0 4k:h-[34px] 4k:w-[34px] w-[19.22px] h-[19.18px]">
                           <Image
                             src={"/svg/edit.svg"}
                             alt="editIcon"
                             width={"4k" ? 34 : 14}
                             height={"4k" ? 34 : 14}
-                            className='hover:cursor-pointer flex-shrink-0 4k:h-[34px] 4k:w-[34px] w-[18px] h-[17.86px]'
-                            onClick={() => HandleClickOnGroupMenu(item)}
+                            className="hover:cursor-pointer flex-shrink-0 4k:h-[34px] 4k:w-[34px] w-[18px] h-[17.86px]"
+                            onClick={() => {
+                              HandleClickOnGroupMenu(item);
+                              localStorage.removeItem("activeChatLocalStorage");
+                            }}
                           />
                         </div>
                       </Tooltip>
@@ -293,14 +333,16 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
             addOrEditGroup={addOrEditGroup}
             setAddOrEditGroup={setAddOrEditGroup}
             HandleClickOnGroupMenu={HandleClickOnGroupMenu}
+            setHeight={setHeight}
+            height={height}
           />
         ) : (
           <></>
         )}
       </ul>
 
-      <div className='flex py-1 px-2.5 justify-end absolute right-[10px] bottom-[-7px] w-full z-[-1]'>
-        <div className='back_main'>
+      <div className="flex py-1 px-2.5 justify-end absolute right-[10px] bottom-[-7px] w-full z-[-1]">
+        <div className="back_main">
           <button
             className={`plusButton ${
               addOrEditGroup?.mode === "add" ? "!left-[-15.647px]" : ""
@@ -312,9 +354,9 @@ const SidebarCategory = ({ NewChat, scrollToBottom, setHeight, overflow }) => {
               scrollToBottom();
             }}
           >
-            <PlusIcon className='plusIcon flex-shrink-0' />
+            <PlusIcon className="plusIcon flex-shrink-0" />
           </button>
-          <div className='addGroup'>Add Group</div>
+          <div className="addGroup">Add Group</div>
         </div>
       </div>
     </>
