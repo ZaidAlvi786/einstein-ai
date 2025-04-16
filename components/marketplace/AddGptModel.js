@@ -46,8 +46,14 @@ export const chatModelLists = [
   { key: "mistral", label: "Mistral" },
 ];
 
+export const ModelTypeLists = [
+  { key: "text", label: "Text" },
+  { key: "image", label: "Image" },
+  { key: "video", label: "Video" },
+  { key: "code", label: "Code" },
+];
+
 function AddGptModel({ open, setOpen, generateRandomImage }) {
-  console.log("open: ", open);
   const auth = useAuth();
   const router = useRouter;
   const fileInput = useRef();
@@ -95,6 +101,7 @@ function AddGptModel({ open, setOpen, generateRandomImage }) {
     support_email: "",
     context_window: [""],
     chat_model: "claude",
+    model_type:["text"],
     prompt: "",
   });
 
@@ -167,6 +174,7 @@ function AddGptModel({ open, setOpen, generateRandomImage }) {
         support_email: tools?.support_email || "",
         context_window: tools?.context_window || [],
         chat_model: tools?.chat_model || "claude",
+        model_type:tools?.tool_type || "text",
         prompt: tools?.prompt || "",
       });
     }
@@ -209,6 +217,8 @@ function AddGptModel({ open, setOpen, generateRandomImage }) {
       github: Yup.string().url("Invalid Github URL"),
     }),
     chat_model: Yup.string().required("Chat Model field is required."),
+    model_type:Yup.array()
+    .min(1, "select Atleast one model type"),
     preview_url: Yup.array()
       .min(1, "At least one preview image is required.")
       .of(Yup.string().url("Must be a valid URL")),
@@ -317,8 +327,8 @@ function AddGptModel({ open, setOpen, generateRandomImage }) {
             : [],
         preview_url: values.preview_url,
         tool_id: open?.tool_details?.id,
+        tool_type: values.model_type,
       };
-      console.log('data: ', data);
 
       try {
         const apiName = open?.isEditable ? UpdateTool : AddToolModelGpt;
@@ -549,7 +559,6 @@ const handleAttachFiles = async (event, ele_key) => {
   try {
     let fileContent = "";
 
-    console.log("🚀 ~ handleAttachFiles ~ file.type:", file.type)
     if(file.type === "application/pdf"){
       toast.error("Please upload .docx or.txt file.")
       return
@@ -1052,6 +1061,64 @@ const handleAttachFiles = async (event, ele_key) => {
                     )}
                   </Select>
                 </div>
+                {/* Model Type Selection */}
+      
+                <div className="flex w-full flex-wrap md:flex-nowrap mb-[22px] relative">
+  
+    <Select
+      // className="max-w-xs"
+      label={
+        <span className="text-[15px] font-bold font-roboto">
+          Select Tool Type
+        </span>
+      }
+      labelPlacement="outside"
+      // placeholder="Text"
+      selectionMode="multiple"
+      classNames={{
+        trigger:
+          "bg-transparent border border-[#424242] !min-h-[38px] 4k:min-h-[173.302px] data-[hover=true]:bg-transparent",
+        errorMessage: "text-sm font-medium",
+        value: `!font-normal !text-[16px] 4k:!text-[17.969px] ${
+          formik.values.model_type
+            ? "text-white"
+            : "text-[#9B9B9B]"
+        }`,
+      }}
+      listboxProps={{
+        itemClasses: {
+          base: "data-[hover=true]:bg-[#383838] data-[hover=true]:text-white text-white",
+        },
+      }}
+      popoverProps={{
+        classNames: {
+          content: "bg-[#2F2F2F] px-1 shadow-none",
+        },
+        className: "bg-transparent",
+      }}
+      name="model_type"
+      // items={usersubscribedModels}
+      radius="sm"
+      selectedKeys={formik.values.model_type}
+  onSelectionChange={(keys) => {
+    formik.setFieldValue("model_type", Array.from(keys));
+  }}
+      isInvalid={
+        formik.errors.model_type && formik.touched.model_type
+      }
+      errorMessage={
+        formik.errors.model_type &&
+        formik.touched.model_type &&
+        formik.errors.model_type
+      }
+    >
+      {ModelTypeLists.map((model) => (
+        <SelectItem key={model.key}>{model.label}</SelectItem>
+      ))}
+    </Select>
+    </div>
+ 
+
 
                 {/* Prompt Input */}
                 <div className="flex w-full flex-col gap-[10px] flex-wrap md:flex-nowrap mb-[22px] relative">

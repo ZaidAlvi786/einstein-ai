@@ -31,6 +31,8 @@ import ToastService from "../Toaster/toastService";
 import DeleteChatConfirmationModal from "./deleteConfirmation";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import ChatExportModal from "../chat/typedChatComponents/ChatExportModal";
+import { DownloadIcon } from "lucide-react";
 
 const ChatOperation = {
   Active: "Active",
@@ -176,6 +178,7 @@ const RightClickChatMenu = ({
   const isOpen = Boolean(anchorEl);
   const menuRef = useRef(null); // Reference for the menu container
   const triggerRef = useRef(null); // Reference for the menu container
+  const [showExportModal, setShowExportModal] = useState(false);
   const {
     refetch: historyByWorkspaceIdRefetch,
   } = useGetHistoryByWorkspaceIdQuery(
@@ -209,6 +212,7 @@ const RightClickChatMenu = ({
     } finally {
       setLoadingOperations((prev) => prev.filter((value) => value !== key));
       if (state === ChatOperation.Delete && activeChat?.id === chatId) {
+        localStorage.removeItem('activeChatLocalStorage') // removed prev activeChat during logout may be
         dispatch(setActiveChat({}));
         NewChat();
       }
@@ -223,6 +227,7 @@ const RightClickChatMenu = ({
   };
   useEffect(() => {
     if (deleteChat?.isDeleted === true) {
+      localStorage.removeItem('activeChatLocalStorage') // removed prev activeChat during logout may be
       dispatch(setActiveChat({}));
       NewChat();
     }
@@ -449,6 +454,19 @@ const RightClickChatMenu = ({
                       : "Share/Invite"}
                   </div>
                 </MenuItem>
+                <MenuItem
+                  className="flex gap-2 hover:bg-[#505050] cursor-pointer !py-0 h-[30px] items-center px-[10px]"
+                  onClick={() =>
+                    setShowExportModal(true)
+                  }
+                >
+                  <div>
+                    <DownloadIcon className="h-[20px] w-[23px]" />
+                  </div>
+                  <div className="font-inter text-[14px] font-normal">
+                    Export Chat
+                  </div>
+                </MenuItem>
               </>
             )}
             <MenuItem
@@ -484,6 +502,14 @@ const RightClickChatMenu = ({
         setDeleteChat={setDeleteChat}
         chat_info={chatId}
       />
+
+{showExportModal && (
+  <ChatExportModal
+    isOpen={showExportModal}
+    setIsOpen={setShowExportModal}
+    chatId={chatId}
+  />
+)}
     </>
   );
 };

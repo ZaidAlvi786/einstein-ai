@@ -11,7 +11,7 @@ import { useAddGroupMutation } from "@/app/lib/features/chat/chatApi";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-function Add_Group({ addOrEditGroup, setAddOrEditGroup, HandleClickOnGroupMenu }) {
+function Add_Group({ addOrEditGroup, setAddOrEditGroup, HandleClickOnGroupMenu, setHeight, height }) {
     const auth = useAuth();
     const activeWorkspace = useAppSelector((state) => state.workspace.activeWorkspace);
     const [AddGroup] = useAddGroupMutation();
@@ -39,6 +39,7 @@ function Add_Group({ addOrEditGroup, setAddOrEditGroup, HandleClickOnGroupMenu }
                     setAddOrEditGroup({ mode: "", groupInfo: null });
                     resetForm();
                     HandleClickOnGroupMenu(response)
+                    localStorage.removeItem('activeChatLocalStorage')
                     toast.success("Group Added Successfully!");
                 })
                 .catch((error) => {
@@ -58,6 +59,7 @@ function Add_Group({ addOrEditGroup, setAddOrEditGroup, HandleClickOnGroupMenu }
             setAddOrEditGroup({ mode: "", groupInfo: null });
             formik.resetForm();
         }
+        setHeight(height-30) // because we are add 30 at the time of add group button click
     };
 
     return (<>

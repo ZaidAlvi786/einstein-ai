@@ -185,7 +185,7 @@ const CreateWorkspaceUsingInput = ({ updateCurrentWorkspace }) => {
                     />
                 </div>
             ) : (
-                <div className="text-gray-700 px-1.5 py-2 flex flex-row border-[#313535] items-center gap-3 rounded-lg group" onClick={() => setIsEditing(true)}>
+                <div className="text-gray-700 px-1.5 py-2 flex flex-row border-[#313535] items-center gap-3 rounded-lg group" onClick={(e) =>{e.stopPropagation(); setIsEditing(true)}}>
                     <div className="min-w-6 h-6 rounded-[3px] bg-[#505050] flex items-center justify-center group-hover:bg-[#A5A5A5]">
                         <PlusIconCreate className="w-3.5 h-3.5" />
                     </div>
