@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dropdown,
@@ -35,6 +35,8 @@ import toast from "react-hot-toast";
 import ToastService from "../Toaster/toastService";
 import groupDataByDate from "@/app/utils/dateAndTime/groupDataByDate";
 import { useRouter } from "next/navigation";
+import { useBlurSideBar } from "../context/blurSideBarContext";
+import ToolsDetailsModal from "../toolsDetailsComponents/toolsDetailModal";
 
 // const groupNotificationDataByDate = (data) => {
 //   const now = moment();
@@ -207,7 +209,7 @@ const IsShowActiveDeclineButton = (type) => {
   return show;
 };
 
-const NotificationItemComponent = ({ data, section }) => {
+const NotificationItemComponent = ({ data, section,setShowtoolDetailModal,setToolId,closeShowNotificationMenu }) => {
   const [NotificationLoading, setNotificationLoading] = useState({
     notification_id: "",
     loading: false,
@@ -226,6 +228,7 @@ const NotificationItemComponent = ({ data, section }) => {
     { skip: !auth?.user?.email || !auth?.user?.fullname }
   );
   const router = useRouter();
+
 
   const HandleChatInviteAcceptanceOrDecline = (
     notification_id,
@@ -261,7 +264,7 @@ const NotificationItemComponent = ({ data, section }) => {
             loading: false,
             type: "",
           });
-          refetch()
+          refetch();
         });
       // } else if (notification_type === "workspace_add_request") {
     } else if (
@@ -297,7 +300,7 @@ const NotificationItemComponent = ({ data, section }) => {
             loading: false,
             type: "",
           });
-          refetch()
+          refetch();
         });
     } else {
       if (type === "accept") {
@@ -365,7 +368,7 @@ const NotificationItemComponent = ({ data, section }) => {
 
       return (
         <div
-          className='mt-7 flex gap-4 cursor-pointer'
+          className="mt-7 flex gap-4 cursor-pointer"
           onClick={() => {
             if (data.type === "model") {
               router.push(
@@ -375,41 +378,41 @@ const NotificationItemComponent = ({ data, section }) => {
           }}
         >
           asdasdasd
-          <div className='relative'>
-            <div className='w-[32px] h-[32px] bg-[#141414] rounded-full text-white	font-helvetica flex justify-center items-center shrink-0 text-xs'>
+          <div className="relative">
+            <div className="w-[32px] h-[32px] bg-[#141414] rounded-full text-white	font-helvetica flex justify-center items-center shrink-0 text-xs">
               {/* <Badge isInvisible={(IsShowNotificationTypeAndIcon(data?.notification_type))} classNames={{ badge: "h-6 bg-[#141414] border-[#141414]" }} content={getNotificationTypeAndIcon("like", "icon")} placement="bottom-right"> */}
               <Avatar
                 src={data?.source_data?.profile_picture_url}
                 showFallback={true}
-                color='primary'
+                color="primary"
                 name={
                   data?.source_data?.full_name?.slice(0, 1)?.toUpperCase() ??
                   data?.notification_text?.slice(0, 1)?.toUpperCase()
                 }
-                className='w-8 h-8'
+                className="w-8 h-8"
               />
               {/* </Badge> */}
             </div>
           </div>
-          <div className='flex items-start justify-between w-[87%]'>
-            <div className='flex flex-col items-start justify-start gap-1 w-[80%]'>
+          <div className="flex items-start justify-between w-[87%]">
+            <div className="flex flex-col items-start justify-start gap-1 w-[80%]">
               {data?.source_data?.full_name && (
-                <p className='text-white text-xs font-helvetica'>
+                <p className="text-white text-xs font-helvetica">
                   {data?.source_data?.full_name}
                   {data?.extra_data?.status === "active"
                     ? "Accepted"
                     : "Declined"}
                 </p>
               )}
-              <div className='flex text-white text-xs gap-1 items-center mb-2 w-[100%]'>
+              <div className="flex text-white text-xs gap-1 items-center mb-2 w-[100%]">
                 {/* {(!IsShowNotificationTypeAndIcon(data?.notification_type)) && (<>
                             <p className='font-helvetica'>{getNotificationTypeAndIcon("like", "title")}</p>
                             <span className='w-[3px] h-[3px] bg-white rounded-full' />
                         </>)} */}
                 <Tooltip
-                  placement='top'
+                  placement="top"
                   content={
-                    <div className=' text-[#FFF] font-helvetica font-small'>
+                    <div className=" text-[#FFF] font-helvetica font-small">
                       {data?.notification_text}
                     </div>
                   }
@@ -419,7 +422,7 @@ const NotificationItemComponent = ({ data, section }) => {
                   delay={0}
                   closeDelay={0}
                 >
-                  <p className='font-helvetica truncate max-w-50'>
+                  <p className="font-helvetica truncate max-w-50">
                     {data?.notification_text}
                   </p>
                 </Tooltip>
@@ -427,13 +430,13 @@ const NotificationItemComponent = ({ data, section }) => {
               {IsShowActiveDeclineButton(data?.notification_type) &&
                 !data?.extra_data && (
                   <>
-                    <div className='flex gap-2'>
+                    <div className="flex gap-2">
                       <Button
-                        color='default'
-                        size='sm'
-                        radius='sm'
-                        className='text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0'
-                        variant='bordered'
+                        color="default"
+                        size="sm"
+                        radius="sm"
+                        className="text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0"
+                        variant="bordered"
                         isLoading={
                           NotificationLoading.notification_id === data?.id &&
                           NotificationLoading.type === "accept" &&
@@ -452,11 +455,11 @@ const NotificationItemComponent = ({ data, section }) => {
                         {`Accept`}
                       </Button>
                       <Button
-                        color='default'
-                        size='sm'
-                        radius='sm'
-                        className='text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0'
-                        variant='bordered'
+                        color="default"
+                        size="sm"
+                        radius="sm"
+                        className="text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0"
+                        variant="bordered"
                         isLoading={
                           NotificationLoading.notification_id === data?.id &&
                           NotificationLoading.type === "decline" &&
@@ -478,8 +481,8 @@ const NotificationItemComponent = ({ data, section }) => {
                   </>
                 )}
             </div>
-            <div className='flex items-center gap-2'>
-              <p className='text-white text-xs font-helvetica'>
+            <div className="flex items-center gap-2">
+              <p className="text-white text-xs font-helvetica">
                 {moment(data?.created_at).format("MMM DD")}
               </p>
               <span
@@ -523,8 +526,14 @@ const NotificationItemComponent = ({ data, section }) => {
   // );
 
   const handleNotificationClick = (data) => {
-    if (data.notification_type === "model" || data.notification_type === "gpt" || data.notification_type === "plugin") {
-      router.push("/marketplace/tools-details?tool_id=" + data.destination_id);
+    if (
+      data.notification_type === "model" ||
+      data.notification_type === "gpt" ||
+      data.notification_type === "plugin"
+    ) {
+      setToolId(data.destination_id);
+      setShowtoolDetailModal(true);
+      closeShowNotificationMenu();
     }
     if (!data.is_read) {
       const param = {
@@ -542,11 +551,11 @@ const NotificationItemComponent = ({ data, section }) => {
   };
   return (
     <div
-      className='mt-7 flex gap-4 cursor-pointer hover:bg-gray-400 hover:bg-opacity-10 p-2 rounded-xl'
+      className="mt-7 flex gap-4 cursor-pointer hover:bg-gray-400 hover:bg-opacity-10 p-2 rounded-xl"
       onClick={() => handleNotificationClick(data)}
     >
-      <div className='relative'>
-        <div className='w-[32px] h-[32px] bg-[#141414] rounded-full text-white	font-helvetica flex justify-center items-center shrink-0 text-xs'>
+      <div className="relative">
+        <div className="w-[32px] h-[32px] bg-[#141414] rounded-full text-white	font-helvetica flex justify-center items-center shrink-0 text-xs">
           {/* <Badge
             isInvisible={IsShowNotificationTypeAndIcon(data?.notification_type)}
             classNames={{ badge: "h-6 bg-[#141414] border-[#141414]" }}
@@ -556,28 +565,28 @@ const NotificationItemComponent = ({ data, section }) => {
           <Avatar
             src={data?.source_data?.profile_picture_url}
             showFallback={true}
-            color='primary'
+            color="primary"
             name={
               data?.source_data?.full_name?.slice(0, 1)?.toUpperCase() ??
               data?.notification_text?.slice(0, 1)?.toUpperCase()
             }
-            className='w-8 h-8'
+            className="w-8 h-8"
           />
           {/* </Badge> */}
         </div>
       </div>
-      <div className='flex items-start justify-between w-full'>
-        <div className='flex flex-col items-start justify-start gap-1'>
+      <div className="flex items-start justify-between w-full">
+        <div className="flex flex-col items-start justify-start gap-1">
           {data?.source_data?.full_name && (
-            <div className='flex items-center gap-1'>
-              <p className='text-white text-xs font-helvetica'>
+            <div className="flex items-center gap-1">
+              <p className="text-white text-xs font-helvetica">
                 {data?.source_data?.full_name}{" "}
               </p>
               {(data?.extra_data?.status === "active" ||
                 data?.extra_data?.status === "declined") && (
-                <span className='w-[3px] h-[3px] bg-white rounded-full' />
+                <span className="w-[3px] h-[3px] bg-white rounded-full" />
               )}
-              <p className='text-white text-xs font-helvetica'>
+              <p className="text-white text-xs font-helvetica">
                 {data?.extra_data?.status === "active"
                   ? "Accepted"
                   : data?.extra_data?.status === "declined"
@@ -586,29 +595,29 @@ const NotificationItemComponent = ({ data, section }) => {
               </p>
             </div>
           )}
-          <div className='flex text-white text-xs items-center mb-2'>
+          <div className="flex text-white text-xs items-center mb-2">
             {!IsShowNotificationTypeAndIcon(data?.notification_type) && (
               <>
-                <p className='font-helvetica'>
+                <p className="font-helvetica">
                   {getNotificationTypeAndIcon("like", "title")}
                 </p>
                 {/* <span className="w-[3px] h-[3px] bg-white rounded-full" /> */}
               </>
             )}
-            <p className='font-helvetica truncate max-w-50 whitespace-normal'>
+            <p className="font-helvetica truncate max-w-50 whitespace-normal">
               {data?.notification_text}
             </p>
           </div>
           {IsShowActiveDeclineButton(data?.notification_type) &&
             !data?.extra_data && (
               <>
-                <div className='flex gap-2'>
+                <div className="flex gap-2">
                   <Button
-                    color='default'
-                    size='sm'
-                    radius='sm'
-                    className='text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0'
-                    variant='bordered'
+                    color="default"
+                    size="sm"
+                    radius="sm"
+                    className="text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0"
+                    variant="bordered"
                     isLoading={
                       NotificationLoading.notification_id === data?.id &&
                       NotificationLoading.type === "accept" &&
@@ -627,11 +636,11 @@ const NotificationItemComponent = ({ data, section }) => {
                     {`Accept`}
                   </Button>
                   <Button
-                    color='default'
-                    size='sm'
-                    radius='sm'
-                    className='text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0'
-                    variant='bordered'
+                    color="default"
+                    size="sm"
+                    radius="sm"
+                    className="text-[12px] font-helvetica not-italic font-normal leading-normal data-[focus-visible=true]:outline-0 data-[focus-visible=true]:outline-offset-0"
+                    variant="bordered"
                     isLoading={
                       NotificationLoading.notification_id === data?.id &&
                       NotificationLoading.type === "decline" &&
@@ -653,8 +662,8 @@ const NotificationItemComponent = ({ data, section }) => {
               </>
             )}
         </div>
-        <div className='flex items-center gap-2'>
-          <p className='text-white text-xs font-helvetica min-w-max'>
+        <div className="flex items-center gap-2">
+          <p className="text-white text-xs font-helvetica min-w-max">
             {/* {moment(data?.created_at).format("MMM DD")} */}
             {/* {moment(data?.created_at).fromNow()} */}
             {/* {formattedTime(data?.created_at)} */}
@@ -676,6 +685,7 @@ const NotificationItemComponent = ({ data, section }) => {
 const NotificationDrawer = ({
   shouldShowNotificationMenu,
   notificationMenuContainerRef,
+  closeShowNotificationMenu
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const auth = useAuth();
@@ -690,11 +700,15 @@ const NotificationDrawer = ({
   const Notifications = groupNotificationDataByDate(
     notificationsData?.notifications ?? []
   );
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");  
   // const Notifications = dispatch(
   //   groupDataByDate(notificationsData?.notifications ?? [])
   // );
 
   const sidebarSize = useAppSelector((state) => state.sidebarResize.width);
+    const { blurSideBar, setBlurSideBar } = useBlurSideBar();
+  
 
   const handleDropdownMenu = (currentKey) => {
     if (currentKey === "mark-all-notifications-read") {
@@ -726,17 +740,19 @@ const NotificationDrawer = ({
 
   return (
     <>
-      <div
+       <div
         ref={notificationMenuContainerRef}
-        className={`max-w-[388px] w-full overflow-y-auto bg-[#141414] fixed trasnsition-card py-6 px-4 h-full z-[99]`}
+        className={`max-w-[388px] w-full overflow-y-auto bg-[#141414] fixed trasnsition-card py-6 px-4 h-full top-[46px] ${
+          blurSideBar ? "z-[8]" :" z-[99]"
+        }`}
         style={{
-          left: shouldShowNotificationMenu
-            ? `${sidebarSize}px`
-            : `-${sidebarSize + 30}px`,
+          right: shouldShowNotificationMenu
+            ? `${10}px`
+            : `-${sidebarSize + 130}px`,
         }}
       >
-        <div className='flex items-center justify-between'>
-          <p className='text-white font-medium text-sm font-helvetica'>{`Notifications`}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-white font-medium text-sm font-helvetica">{`Notifications`}</p>
           <Dropdown
             classNames={{
               content:
@@ -746,7 +762,7 @@ const NotificationDrawer = ({
           >
             <DropdownTrigger>
               <div
-                variant='bordered'
+                variant="bordered"
                 className={`cursor-pointer ${
                   isOpen ? "!border-[#2B6BDC] bg-[#2F2F2F]" : ""
                 } p-0 border-transparent border-2 rounded hover:bg-[#2F2F2F]`}
@@ -755,11 +771,11 @@ const NotificationDrawer = ({
               </div>
             </DropdownTrigger>
             <DropdownMenu
-              aria-label='notification'
-              variant='flat'
+              aria-label="notification"
+              variant="flat"
               closeOnSelect={true}
               disallowEmptySelection
-              selectionMode='single'
+              selectionMode="single"
               onSelectionChange={({ currentKey }) =>
                 handleDropdownMenu(currentKey)
               }
@@ -767,12 +783,12 @@ const NotificationDrawer = ({
               <DropdownItem
                 startContent={<Checkboxicon />}
                 key={"mark-all-notifications-read"}
-                className='text-white font-normal helvetica-font data-[hover=true]:bg-[#505050]'
+                className="text-white font-normal helvetica-font data-[hover=true]:bg-[#505050]"
               >{`Mark all as read`}</DropdownItem>
               <DropdownItem
                 startContent={<Archiveicon />}
                 key={"archive-all-notifications"}
-                className='text-white font-normal helvetica-font data-[hover=true]:bg-[#505050]'
+                className="text-white font-normal helvetica-font data-[hover=true]:bg-[#505050]"
               >{`Archive all`}</DropdownItem>
             </DropdownMenu>
           </Dropdown>
@@ -792,7 +808,7 @@ const NotificationDrawer = ({
           <>
             {Notifications.map((section, sectionIndex) => (
               <div key={sectionIndex}>
-                <p className='text-white mt-[14px] text-[10px]'>
+                <p className="text-white mt-[14px] text-[10px]">
                   {section.title}
                 </p>
                 {section.items.map((item, index) => (
@@ -800,6 +816,9 @@ const NotificationDrawer = ({
                     key={index}
                     data={item}
                     section={section}
+                    setShowtoolDetailModal={setShowtoolDetailModal}
+                    setToolId={setToolId}
+                    closeShowNotificationMenu={closeShowNotificationMenu}
                   />
                 ))}
               </div>
@@ -837,13 +856,21 @@ const NotificationDrawer = ({
           )} */}
         {Notifications?.length <= 0 && (
           <>
-            <div className='flex justify-center items-center h-calc-30px'>
-              <p className='text-[#999999]'>{`You don’t have any notifications right now.`}</p>
+            <div className="flex justify-center items-center h-calc-30px">
+              <p className="text-[#999999]">{`You don’t have any notifications right now.`}</p>
             </div>
           </>
         )}
       </div>
       <ToastService />
+      {showtoolDetailModal && 
+                                      (
+                                        <ToolsDetailsModal
+                                          setShowtoolDetailModal={setShowtoolDetailModal}
+                                          showtoolDetailModal={showtoolDetailModal}
+                                          tool_id={tool_id}
+                                        />
+                                      )}
     </>
   );
 };

@@ -25,6 +25,7 @@ const ToolAddRemoveButton = ({
   className,
   navigateToolDetailsPage,
   refetchToolListOnHome,
+  MarketplaceCard = false
 }) => {
   const auth = useAuth();
   const tool_category = tool_info?.category;
@@ -177,29 +178,29 @@ const ToolAddRemoveButton = ({
             <Button
               className={
                 className ??
-                `text-base h-auto rounded-full font-helvetica font-bold py-1.5 px-5 bg-[#FFF] text-[#545454]`
+                `text-base rounded-[30px] font-helvetica h-auto py-1.5 px-2 min-w-fit ${MarketplaceCard ? "border border-[#939393] text-[#939393] font-bold bg-transparent" : "  font-medium  bg-[#FFF] text-[#545454] px-5" }`
               }
               onPress={() => OpenToolRemove("delete")}
             >
-              Remove
+             {MarketplaceCard ? "Added" : "Remove" }
             </Button>
           ) : (
             <Button
-              className={`text-base h-auto rounded-full font-helvetica font-bold py-1.5 px-[18.12px] min-w-[64.754px] hover:!bg-[#0a5cff] bg-[#0A84FF] text-white`}
+              className={`${MarketplaceCard ? "font-bold py-1.5 px-4 min-w-fit" : "font-normal py-1.5 px-8 min-w-[64.754px]"} text-base h-auto rounded-[30px] font-helvetica   hover:!bg-[#0a5cff] bg-[#0A84FF] text-white`}
               onPress={Handle_Trial_Open_Add_Gpt_Plugin_Modal}
               isDisabled={isSubmitting.open}
             >
-              {"Try Now"}
+              {"Add"}
             </Button>
           )}
         </>
       ) : (
         <Button
           as={Link}
-          className={`text-base h-auto rounded-full font-helvetica font-bold py-1.5 px-5 bg-[#0A84FF] text-white`}
+          className={`${MarketplaceCard ? "font-bold py-1.5 px-4 min-w-fit" : "font-normal py-1.5 px-8 min-w-[64.754px]"} text-base h-auto rounded-[30px] font-helvetica   hover:!bg-[#0a5cff] bg-[#0A84FF] text-white`}
           href="/signin"
         >
-          {"Try Now"}
+          {"Add"}
         </Button>
       )}
 

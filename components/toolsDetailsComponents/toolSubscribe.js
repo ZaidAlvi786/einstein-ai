@@ -23,6 +23,7 @@ import React, { useState } from "react";
 import BillingCanc from "@/app/assets/svg/billingCanc.svg";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import { usePathname } from "next/navigation";
 
 const classNames = {
   //   header: ["2xl:py-8", "2xl:px-[65px]", "xl:py-[22px]", "xl:px-[30px]"],
@@ -264,6 +265,7 @@ const ToolSubscribe = ({
   setIsOpenSubsribeModal,
   isOpenSubsribeModal
 }) => {
+  const path = usePathname()
   const [UnsubscribeTool, isMutationLoading] = useUnsubscribeToolMutation();
   const [isOpenCancelSubsModal, setisOpenCancelSubsModal] = useState(false);
   const [isConfirm, setIsConfirm] = useState(false);
@@ -280,7 +282,15 @@ const ToolSubscribe = ({
         .unwrap()
         .then((response) => {
           toast.success(response?.message);
-          window.location.reload();
+          if (path === "/marketplace/tools-details") {
+            setTimeout(() => {
+              window.location.href = "/profile/my-tools";
+            }, 500);
+          } else {
+            setTimeout(() => {
+              window.location.reload();
+            });
+          }
           const menuItems = JSON.parse(localStorage.getItem("menuItemsOrder") || "[]");
           const pinnedPlugins = JSON.parse(localStorage.getItem("pinnedItemsOrder") || "[]");
 
@@ -319,7 +329,7 @@ const ToolSubscribe = ({
               setOpenCardModal((prev) => ({ ...prev, open: true }));
             }
           }}
-          className={` text-[${textColor}] helvetica-font h-9 rounded-full bg-[${bgColor}] border border-[${borderColor}]
+          className={` text-[${textColor}] helvetica-font font-normal h-9 rounded-full bg-[${bgColor}] border border-[${borderColor}]
                     hover:bg-[#fff] hover:text-[#000] text-[16px] flex justify-center items-center`}
         >
           Subscribe
@@ -334,7 +344,7 @@ const ToolSubscribe = ({
         // </div>
         <Button
           onClick={openCancelSubsModal}
-          className={` text-[${textColor}] helvetica-font h-9 rounded-full bg-[${bgColor}] border border-[${borderColor}]
+          className={` text-[${textColor}] helvetica-font font-normal h-9 rounded-full bg-[${bgColor}] border border-[${borderColor}]
                     hover:bg-[#fff] hover:text-[#000] text-[16px] flex justify-center items-center`}
         >
           {/* {isLoading ? <Spinner size="sm" color="white" /> : "Unsubscribe" } */}

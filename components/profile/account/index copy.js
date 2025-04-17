@@ -266,7 +266,7 @@ const Account = () => {
         localStorage.removeItem("workspace_id");
         localStorage.removeItem("group");
         localStorage.removeItem("enstine_auth");
-
+        localStorage.removeItem('activeChatLocalStorage') // removed prev activeChat during logout may be
         dispatch(setActiveChat({}));
         dispatch(setCurrentActiveGroup({}));
 
