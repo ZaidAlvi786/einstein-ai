@@ -29,6 +29,7 @@ import MarketplaceCard from "./MarketplaceCard";
 import ToglBox from "./ToglBox";
 import GptCard from "./GptCard";
 import Link from "next/link";
+import ToolsDetailsModal from "../toolsDetailsComponents/toolsDetailModal";
 
 const MarketPlaceHome = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,6 +38,10 @@ const MarketPlaceHome = () => {
   const searchParams = useSearchParams();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [allData, setAllData] = React.useState([]);
+  const [showtoolDetailModal, setShowtoolDetailModal] = useState(false);
+  const [tool_id, setToolId] = useState("");
+  const tabs = [ "text", "image", "video", "code"];
+  const [selectedTabs, setSelectedTabs] = useState([tabs[0]]); // Default selected tab
 
   const {
     data: trendingData,
@@ -45,6 +50,7 @@ const MarketPlaceHome = () => {
   } = useGetTrendingToolsQuery({
     page_number: currentPage,
     per_page: 6,
+     tools_type: selectedTabs.join(","),
     // search: debouncedSearchTerm, // dashboard data will not change on search filter
   });
 
@@ -66,6 +72,7 @@ const MarketPlaceHome = () => {
     category: "model",
     price_type_filter: "",
     sort_by: "",
+    tools_type: selectedTabs.join(","),
   });
 
   const {
@@ -79,6 +86,7 @@ const MarketPlaceHome = () => {
     category: "gpt",
     price_type_filter: "",
     sort_by: "",
+    tools_type: selectedTabs.join(","),
   });
 
   const {
@@ -92,7 +100,15 @@ const MarketPlaceHome = () => {
     category: "plugin",
     price_type_filter: "",
     sort_by: "",
+    tools_type: selectedTabs.join(","),
   });
+  useEffect(() => {
+    refetchGptListOnHome();
+    refetchTrandingListOnHome();
+    refetchModelListOnHome();
+    refetchPluginListOnHome();
+
+  }, [selectedTabs]);
 
   // Update search term and apply debounce
   const handleSearchChange = (value) => {
@@ -118,11 +134,8 @@ const MarketPlaceHome = () => {
   );
 
   const navigateToolDetailsPage = (tool_id) => {
-    router.push(
-      "/marketplace/tools-details" +
-        "?" +
-        createMultipleQueryString({ tool_id })
-    );
+    setToolId(tool_id);
+    setShowtoolDetailModal(true);
   };
 
   useEffect(() => {
@@ -178,10 +191,20 @@ const MarketPlaceHome = () => {
     e.preventDefault();
     router.push(link);
   };
+
+  const toggleTab = (tab) => {
+    setSelectedTabs((prev) =>
+      prev.includes(tab)
+        ? prev.filter((t) => t !== tab)
+        : [...prev, tab]
+    );
+  };
+
+
   return (
     <>
       <div className="2xl:max-w-[1227px] xl:max-w-[925px] lg:max-w-[915px] w-full mx-auto px-3">
-        <div className="text-center mt-[50px] mb-[105px]">
+        <div className="text-center mt-[50px] mb-[40px]">
           {/* <ToglBox /> */}
           <h2 className="text-white 4k:text-[91.163px] text-[40.433px] font-normal helvetica-font mb-[16px]">{`Welcome to Togl Marketplace`}</h2>
           <p className="text-[#E4E4E4] text-[17px] !font-normal helvetica-font leading-[140%]">
@@ -306,7 +329,85 @@ const MarketPlaceHome = () => {
             </Autocomplete>
           </div>
         </div>
-        <div className="flex gap-[3px] items-end justify-between mb-[24px]">
+
+        <div className="flex gap-2.5 p-4 mb-4">
+    {tabs.map((tab) => (
+      <Button
+        key={tab}
+        onClick={() => toggleTab(tab)}
+        className={`px-4 py-1.5 rounded-[11px] font-medium text-base min-h-fit h-fit min-w-fit ${
+          selectedTabs.includes(tab) ? "bg-[#0A84FF] text-white" : "bg-[#272727] text-white hover:bg-[#0A84FF]"
+        }`}
+      >
+        {tab?.charAt(0)?.toUpperCase() + tab?.slice(1)?.toLowerCase()}
+      </Button>
+    ))}
+  </div>
+        
+          <div className="mb-[39px]">
+            <div className="flex gap-[3px] items-end justify-between mb-[22px] pl-5">
+              <div className="flex flex-col">
+                <Link href={`/marketplace/models`}>
+                  <div className="text-[24px] cursor-pointer font-bold text-[#fff] leading-[140%] helvetica-font mb-[4px]">
+                    Models
+                  </div>
+                </Link>
+                <p className="text-[#858584] text-[14px] helvetica-font font-medium">
+                  Most popular Models by our community.
+                </p>
+              </div>
+              {modelsData?.tools && (
+              <p
+                onClick={(e) => handleRedirection(e, "/marketplace/models")}
+                className="text-[#707AFD] flex gap-[3px] items-center cursor-pointer"
+              >
+                <span className="text-[13px] font-bold text-[#0A84FF]">
+                  Browse all
+                </span>
+                <KeyboardDown />
+              </p>)}
+            </div>
+            <div>
+              {modelsLoading ? (
+                <div className="grid grid-cols-12 gap-5 p-4">
+                  {Array.from({ length: 6 }, (_, i) => i + 1).map((_, key) => (
+                    <div
+                      key={key}
+                      className="lg:col-span-4 sm:col-span-6 col-span-12"
+                    >
+                      <Skeleton className="w-full rounded-[21.411px]">
+                        <section className="h-[125px]"></section>
+                      </Skeleton>
+                    </div>
+                  ))}
+                </div>
+              ) : modelsData?.tools?.length > 0 ? (
+                <div className="grid grid-cols-12 gap-5 p-4">
+                  {modelsData?.tools?.map((item, index) => (
+                    <div
+                      className="lg:col-span-4 sm:col-span-6 col-span-12"
+                      key={index}
+                      onClick={() => navigateToolDetailsPage(item?.id)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <MarketplaceCard
+                        cardData={item}
+                        navigateToolDetailsPage={navigateToolDetailsPage}
+                        refetchToolListOnHome={refetchModelListOnHome}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full flex items-center justify-center">
+                  <p className="text-white">No data found.</p>
+                </div>
+              )}
+            </div>
+          </div>
+       
+        {trendingData?.tools && (
+        <div className="flex gap-[3px] items-end justify-between mb-[24px] pl-5">
           <div className="flex flex-col">
             <div className="text-[24px] font-bold text-[#fff] leading-[140%] helvetica-font mb-[4px]">
               Trending
@@ -321,14 +422,15 @@ const MarketPlaceHome = () => {
             </span>
             <KeyboardDown />
           </button> */}
-        </div>
+        </div>)}
+        {trendingData?.tools && (
         <div className="gap-4 mb-[37px]">
           {trendingLoading ? (
             <div className="grid grid-cols-12 gap-5 p-4">
               {Array.from({ length: 6 }, (_, i) => i + 1).map((_, key) => (
                 <div key={key} className="col-span-4 ">
                   <Skeleton className="w-full rounded-[21.411px]">
-                    <section className="h-[210px]"></section>
+                    <section className="h-[125px]"></section>
                   </Skeleton>
                 </div>
               ))}
@@ -353,9 +455,9 @@ const MarketPlaceHome = () => {
               <p className="text-white">No data found.</p>
             </div>
           )}
-        </div>
+        </div>)}
 
-        {pluginData?.tools ? (
+        {/* {pluginData?.tools ? (
           <div className="mb-[39px]">
             <div className="flex gap-[3px] items-end justify-between mb-[22px]">
               <div className="flex flex-col">
@@ -387,7 +489,7 @@ const MarketPlaceHome = () => {
                       className="lg:col-span-4 sm:col-span-6 col-span-12 p-4"
                     >
                       <Skeleton className="w-full rounded-[21.411px]">
-                        <section className="h-[210px]"></section>
+                        <section className="h-[125px]"></section>
                       </Skeleton>
                     </div>
                   ))}
@@ -417,71 +519,8 @@ const MarketPlaceHome = () => {
           </div>
         ) : (
           ""
-        )}
-        {modelsData?.tools ? (
-          <div className="mb-[39px]">
-            <div className="flex gap-[3px] items-end justify-between mb-[22px]">
-              <div className="flex flex-col">
-                <Link href={`/marketplace/models`}>
-                  <div className="text-[24px] cursor-pointer font-bold text-[#fff] leading-[140%] helvetica-font mb-[4px]">
-                    Models
-                  </div>
-                </Link>
-                <p className="text-[#858584] text-[14px] helvetica-font font-medium">
-                  Most popular Models by our community.
-                </p>
-              </div>
-              <p
-                onClick={(e) => handleRedirection(e, "/marketplace/models")}
-                className="text-[#707AFD] flex gap-[3px] items-center cursor-pointer"
-              >
-                <span className="text-[13px] font-bold text-[#0A84FF]">
-                  Browse all
-                </span>
-                <KeyboardDown />
-              </p>
-            </div>
-            <div>
-              {modelsLoading ? (
-                <div className="grid grid-cols-12 gap-5 p-4">
-                  {Array.from({ length: 6 }, (_, i) => i + 1).map((_, key) => (
-                    <div
-                      key={key}
-                      className="lg:col-span-4 sm:col-span-6 col-span-12"
-                    >
-                      <Skeleton className="w-full rounded-[21.411px]">
-                        <section className="h-[210px]"></section>
-                      </Skeleton>
-                    </div>
-                  ))}
-                </div>
-              ) : modelsData?.tools?.length > 0 ? (
-                <div className="grid grid-cols-12 gap-5 p-4">
-                  {modelsData?.tools?.map((item, index) => (
-                    <div
-                      className="lg:col-span-4 sm:col-span-6 col-span-12"
-                      key={index}
-                      onClick={() => navigateToolDetailsPage(item?.id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <MarketplaceCard
-                        cardData={item}
-                        navigateToolDetailsPage={navigateToolDetailsPage}
-                        refetchToolListOnHome={refetchModelListOnHome}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="w-full flex items-center justify-center">
-                  <p className="text-white">No data found.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          ""
-        )}
+        )} */}
+       
         {/* {toolsData?.tools?.widget ? (
           <div className="mb-[39px]">
             <div className="flex gap-[3px] items-end justify-between mb-[22px]">
@@ -509,7 +548,7 @@ const MarketPlaceHome = () => {
                   {Array.from({ length: 6 }, (_, i) => i + 1).map((_, key) => (
                     <div key={key} className="col-span-4 ">
                       <Skeleton className="w-full rounded-[21.411px]">
-                        <section className="h-[210px]"></section>
+                        <section className="h-[125px]"></section>
                       </Skeleton>
                     </div>
                   ))}
@@ -539,7 +578,7 @@ const MarketPlaceHome = () => {
         )} */}
         {gptData?.tools ? (
           <div className="mb-[39px]">
-            <div className="flex gap-[3px] items-end justify-between mb-[22px]">
+            <div className="flex gap-[3px] items-end justify-between mb-[22px] pl-5">
               <div className="flex flex-col">
                 <Link href={`/marketplace/gpts`}>
                   <div className="text-[24px] cursor-pointer font-bold text-[#fff] leading-[140%] helvetica-font mb-[4px]">{`GPT’s`}</div>
@@ -565,7 +604,7 @@ const MarketPlaceHome = () => {
                       className="lg:col-span-4 sm:col-span-6 col-span-12"
                     >
                       <Skeleton className="w-full rounded-[21.411px]">
-                        <section className="h-[210px]"></section>
+                        <section className="h-[125px]"></section>
                       </Skeleton>
                     </div>
                   ))}
@@ -783,6 +822,14 @@ const MarketPlaceHome = () => {
           </div>
         </footer>
       </div>
+      {showtoolDetailModal && 
+                  (
+                    <ToolsDetailsModal
+                      setShowtoolDetailModal={setShowtoolDetailModal}
+                      showtoolDetailModal={showtoolDetailModal}
+                      tool_id={tool_id}
+                    />
+                  )}
     </>
   );
 };

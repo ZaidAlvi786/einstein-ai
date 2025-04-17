@@ -47,6 +47,8 @@ export interface UserChatProps {
   setEditModeIndex: any;
   enterEditMode: any;
   Index: number;
+  attachedFiles:any;
+  setAttachedFiles:any,
 }
 
 export interface AssistantMessageVersionChangeProps {
@@ -80,8 +82,11 @@ export interface ChatInputProps {
   showReply: any;
   setShowReply: any;
   showLoader?:any
+  editingMessage:any
+  acceptType:any
 }
 
 export interface ChatProps {
   chatHistoryID: string;
+  NewChat?: any
 }

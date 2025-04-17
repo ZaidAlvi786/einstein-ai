@@ -1,5 +1,5 @@
 // addToolsDropdown.js
-"use client"
+"use client";
 import { Button } from "@nextui-org/react";
 import { useState } from "react";
 import AddIcon from "@/app/assets/svg/add.svg";
@@ -13,15 +13,16 @@ import { Fragment } from "react";
 import { Transition } from "@headlessui/react";
 import { useAuth } from "@/app/authContext/auth";
 import Link from "next/link";
+import { ADMIN_EMAILS } from "@/components/constants/UserConstant";
 
 const AddToolsDropdown = () => {
   const auth = useAuth();
+  console.log("auth: ===>", auth?.user?.email);
   const [addToolModelGpt, setAddToolModelGpt] = useState({
     open: false,
     isEditable: false,
     tool_details: null,
-    category: ''
-    
+    category: "",
   });
   const [addToolPluginWidget, setAddToolPluginWidget] = useState({
     open: false,
@@ -58,7 +59,11 @@ const AddToolsDropdown = () => {
 
   const handleToggle = (e) => {
     e?.preventDefault();
-    setOpenCreateToolDropdown((prev) => !prev);
+    if (ADMIN_EMAILS.some((userEmail) => userEmail === auth?.user?.email)) {
+      setOpenCreateToolDropdown((prev) => !prev);
+    } else {
+      window.location.href = "https://calendly.com/bmb-111/meeting";
+    }
   };
 
   const handleClickOnPluginWidget = (tools) => {
@@ -142,7 +147,7 @@ const AddToolsDropdown = () => {
                   <p className="text-[16px] text-[#9B9B9B] whitespace-normal -tracking-[0.1px] font-helvetica">{`A model of your choice, fine-tuned with specific information that is provided.`}</p>
                 </div> */}
                 <a
-                //   href={"https://github.com/Einstein-AI/Frontend.git"}
+                  //   href={"https://github.com/Einstein-AI/Frontend.git"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-3 border border-[#424242] rounded-[7px] cursor-pointer hover:bg-[#505050] transition-all hover:bg-opacity-80 focus:bg-blue-gray-50 focus:bg-opacity-80 active:bg-blue-gray-50 active:bg-opacity-80 hover:text-blue-gray-900 focus:text-blue-gray-900 active:text-blue-gray-900"
@@ -186,7 +191,11 @@ const AddToolsDropdown = () => {
       />
 
       {/* Create a Gpts model */}
-      <AddGptModel open={addToolModelGpt} setOpen={setAddToolModelGpt} generateRandomImage={!addToolModelGpt.isEditable}/>
+      <AddGptModel
+        open={addToolModelGpt}
+        setOpen={setAddToolModelGpt}
+        generateRandomImage={!addToolModelGpt.isEditable}
+      />
     </>
   );
 };
